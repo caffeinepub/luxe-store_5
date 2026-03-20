@@ -50,8 +50,8 @@ export default function CartDrawer() {
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col"
             style={{
-              background: "rgba(10, 15, 20, 0.98)",
-              borderLeft: "1px solid rgba(42, 54, 68, 0.6)",
+              background: "rgba(5, 2, 15, 0.98)",
+              borderLeft: "1px solid rgba(120, 60, 200, 0.4)",
             }}
             data-ocid="cart.panel"
           >

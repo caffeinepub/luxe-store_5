@@ -45,9 +45,9 @@ export default function Navbar() {
           }`}
           style={{
             background: scrolled
-              ? "rgba(10, 15, 20, 0.85)"
-              : "rgba(10, 15, 20, 0.5)",
-            borderColor: scrolled ? "rgba(42, 54, 68, 0.7)" : "transparent",
+              ? "rgba(5, 2, 15, 0.92)"
+              : "rgba(5, 2, 15, 0.6)",
+            borderColor: scrolled ? "rgba(120, 60, 200, 0.5)" : "transparent",
           }}
         >
           <Link
@@ -94,7 +94,7 @@ export default function Navbar() {
             >
               <Heart size={18} />
               {wishlistItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-luxe-cyan text-[10px] font-bold text-[#0a0f14] flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-luxe-cyan text-[10px] font-bold text-white flex items-center justify-center">
                   {wishlistItems.length}
                 </span>
               )}
@@ -113,7 +113,7 @@ export default function Navbar() {
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-luxe-cyan text-[10px] font-bold text-[#0a0f14] flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-luxe-cyan text-[10px] font-bold text-white flex items-center justify-center"
                 >
                   {totalCount}
                 </motion.span>

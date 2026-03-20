@@ -135,7 +135,7 @@ export default function WishlistPage() {
                               color: product.colors[0] ?? "#000",
                             })
                           }
-                          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-luxe-cyan/10 border border-luxe-cyan/30 text-luxe-cyan text-xs font-bold hover:bg-luxe-cyan hover:text-[#0a0f14] transition-all"
+                          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-luxe-cyan/10 border border-luxe-cyan/30 text-luxe-cyan text-xs font-bold hover:bg-luxe-cyan hover:text-white transition-all"
                           data-ocid={`wishlist.primary_button.${i + 1}`}
                         >
                           <ShoppingCart size={13} /> Add to Cart

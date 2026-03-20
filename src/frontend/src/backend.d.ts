@@ -59,6 +59,7 @@ export enum Variant_shipped_pending_delivered_processing {
     processing = "processing"
 }
 export interface backendInterface {
+    _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addReview(productId: string, rating: bigint, comment: string): Promise<void>;
     addToCart(item: CartItem): Promise<void>;
     addToWishlist(productId: string): Promise<void>;

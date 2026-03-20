@@ -35,6 +35,7 @@ import type { Product } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAllProducts,
+  useClaimAdmin,
   useCreateOrUpdateProduct,
   useIsAdmin,
 } from "../hooks/useQueries";
@@ -164,7 +165,7 @@ function ProductFormModal({
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         style={{
-          background: "rgba(10,15,20,0.97)",
+          background: "rgba(5, 2, 15, 0.97)",
           border: "1px solid rgba(42,54,68,0.8)",
         }}
         data-ocid="admin.product.dialog"
@@ -205,7 +206,7 @@ function ProductFormModal({
               </SelectTrigger>
               <SelectContent
                 style={{
-                  background: "rgba(10,15,20,0.97)",
+                  background: "rgba(5, 2, 15, 0.97)",
                   border: "1px solid rgba(42,54,68,0.8)",
                 }}
               >
@@ -353,13 +354,16 @@ function ProductFormModal({
 }
 
 export default function AdminPage() {
-  const { identity, isInitializing } = useInternetIdentity();
+  const { identity, isInitializing, login, isLoggingIn } =
+    useInternetIdentity();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: products, isLoading: productsLoading } = useAllProducts();
   const mutation = useCreateOrUpdateProduct();
+  const claimAdmin = useClaimAdmin();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | undefined>();
+  const [adminToken, setAdminToken] = useState("");
 
   const openAdd = () => {
     setEditProduct(undefined);
@@ -377,6 +381,16 @@ export default function AdminPage() {
       toast.success(`"${p.title}" removed from stock`);
     } catch {
       toast.error("Failed to remove product");
+    }
+  };
+
+  const handleClaimAdmin = async () => {
+    try {
+      await claimAdmin.mutateAsync(adminToken);
+      toast.success("Admin access granted!");
+      setAdminToken("");
+    } catch {
+      toast.error("Invalid token or admin already assigned.");
     }
   };
 
@@ -405,14 +419,21 @@ export default function AdminPage() {
           <p className="text-muted-foreground">
             Please log in to access the admin panel.
           </p>
-          <Link to="/account">
-            <Button
-              className="bg-luxe-cyan text-black hover:bg-luxe-cyan/90 w-full"
-              data-ocid="admin.login_button"
-            >
-              Go to Login
-            </Button>
-          </Link>
+          <Button
+            onClick={() => login()}
+            disabled={isLoggingIn}
+            className="bg-luxe-cyan text-black hover:bg-luxe-cyan/90 w-full font-semibold"
+            data-ocid="admin.login_button"
+          >
+            {isLoggingIn ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Logging in...
+              </>
+            ) : (
+              "Login with Internet Identity"
+            )}
+          </Button>
         </motion.div>
       </div>
     );
@@ -424,19 +445,54 @@ export default function AdminPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-3xl p-10 max-w-md w-full text-center space-y-6"
-          data-ocid="admin.access_denied.panel"
+          className="glass-card rounded-3xl p-10 max-w-md w-full space-y-6"
+          data-ocid="admin.setup.panel"
         >
-          <ShieldAlert className="mx-auto h-12 w-12 text-red-400" />
-          <h2 className="font-display text-2xl font-bold">Access Denied</h2>
-          <p className="text-muted-foreground">
-            You don&apos;t have admin privileges to access this page.
-          </p>
-          <Link to="/">
+          <div className="text-center space-y-3">
+            <ShieldAlert className="mx-auto h-12 w-12 text-luxe-cyan" />
+            <h2 className="font-display text-2xl font-bold">Admin Setup</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Enter your admin secret token to claim admin access. This is set
+              once – the first person to use the correct token becomes the store
+              admin.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-muted-foreground text-xs uppercase tracking-wider">
+              Secret Token
+            </Label>
+            <Input
+              type="password"
+              value={adminToken}
+              onChange={(e) => setAdminToken(e.target.value)}
+              placeholder="Enter admin secret token"
+              className="bg-white/5 border-white/10"
+              onKeyDown={(e) => e.key === "Enter" && handleClaimAdmin()}
+              data-ocid="admin.setup.input"
+            />
+          </div>
+
+          <Button
+            onClick={handleClaimAdmin}
+            disabled={claimAdmin.isPending || !adminToken.trim()}
+            className="bg-luxe-cyan text-black hover:bg-luxe-cyan/90 font-semibold w-full"
+            data-ocid="admin.setup.primary_button"
+          >
+            {claimAdmin.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Claiming...
+              </>
+            ) : (
+              "Claim Admin Access"
+            )}
+          </Button>
+
+          <Link to="/" className="block">
             <Button
               variant="outline"
               className="border-white/20 w-full"
-              data-ocid="admin.go_home.button"
+              data-ocid="admin.setup.cancel_button"
             >
               Go Home
             </Button>

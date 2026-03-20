@@ -40,10 +40,12 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -10 }}
       transition={{
         delay: index * 0.05,
-        duration: 0.5,
-        ease: [0.22, 1, 0.36, 1],
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
       }}
       className="group product-card-hover"
       onMouseEnter={() => setHovered(true)}
@@ -61,19 +63,33 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               loading="lazy"
             />
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${hovered ? "opacity-100" : "opacity-50"}`}
+              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${
+                hovered ? "opacity-100" : "opacity-50"
+              }`}
             />
 
             <div className="absolute top-3 left-3 flex flex-col gap-1">
               {product.isFlashSale && (
-                <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-xs font-bold uppercase tracking-wide">
+                <motion.span
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+                  className="px-2 py-0.5 rounded-full bg-red-500 text-white text-xs font-bold uppercase tracking-wide"
+                >
                   Sale {discount}% OFF
-                </span>
+                </motion.span>
               )}
               {product.isTrending && !product.isFlashSale && (
-                <span className="px-2 py-0.5 rounded-full bg-luxe-cyan/90 text-[#0a0f14] text-xs font-bold uppercase tracking-wide">
+                <motion.span
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+                  className="px-2 py-0.5 rounded-full text-white text-xs font-bold uppercase tracking-wide"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #9333ea 0%, #d946ef 100%)",
+                  }}
+                >
                   Trending
-                </span>
+                </motion.span>
               )}
             </div>
 
@@ -82,6 +98,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               onClick={(e) => {
                 e.preventDefault();
                 toggle(product.id, product.title);
+              }}
+              whileHover={{
+                scale: 1.2,
+                rotate: 10,
+                transition: { type: "spring", stiffness: 400, damping: 12 },
               }}
               whileTap={{ scale: 0.8 }}
               className="absolute top-3 right-3 p-2 rounded-full backdrop-blur-md bg-black/30 border border-white/10 transition-all hover:bg-black/50"
@@ -100,8 +121,20 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               onClick={handleAddToCart}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: hovered ? 0 : 20, opacity: hovered ? 1 : 0 }}
-              transition={{ duration: 0.3 }}
-              className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2 py-2.5 rounded-xl backdrop-blur-md bg-black/60 border border-white/20 text-white text-sm font-semibold hover:bg-luxe-cyan/90 hover:text-[#0a0f14] transition-colors"
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2 py-2.5 rounded-xl backdrop-blur-md border border-purple-500/30 text-white text-sm font-semibold transition-all duration-300"
+              style={{ background: "rgba(80, 20, 120, 0.7)" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "linear-gradient(135deg, #9333ea 0%, #d946ef 100%)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 20px rgba(147,51,234,0.5)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(80, 20, 120, 0.7)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+              }}
               data-ocid={`products.item.${index + 1}`}
             >
               <ShoppingCart size={14} />
@@ -133,9 +166,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               </span>
             </div>
             <div className="flex items-center gap-2 mt-2">
-              <span className="font-bold text-luxe-cyan">
+              <motion.span
+                whileHover={{ scale: 1.12 }}
+                transition={{ type: "spring", stiffness: 500, damping: 10 }}
+                className="font-bold gradient-text"
+              >
                 ${product.price.toFixed(2)}
-              </span>
+              </motion.span>
               {product.originalPrice > product.price && (
                 <span className="text-xs text-muted-foreground line-through">
                   ${product.originalPrice.toFixed(2)}

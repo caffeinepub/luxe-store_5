@@ -71,14 +71,14 @@ export default function AboutPage() {
         ref={heroRef}
         className="relative min-h-[60vh] flex items-center overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #0a0f14 0%, #0d1a2a 100%)",
+          background: "linear-gradient(135deg, #050508 0%, #0d0520 100%)",
         }}
       >
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 30% 60%, rgba(47,212,255,0.1) 0%, transparent 60%)",
+              "radial-gradient(ellipse at 30% 60%, rgba(168,85,247,0.1) 0%, transparent 60%)",
           }}
         />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-16">
@@ -161,7 +161,9 @@ export default function AboutPage() {
       <section
         ref={valuesRef}
         className="py-20"
-        style={{ background: "rgba(17, 27, 36, 0.5)" }}
+        style={{
+          background: "linear-gradient(180deg, #06000f 0%, #0f0530 100%)",
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div

@@ -93,3 +93,17 @@ export function useCreateOrUpdateProduct() {
     },
   });
 }
+
+export function useClaimAdmin() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (secret: string) => {
+      if (!actor) throw new Error("Not connected");
+      return actor._initializeAccessControlWithSecret(secret);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["isAdmin"] });
+    },
+  });
+}

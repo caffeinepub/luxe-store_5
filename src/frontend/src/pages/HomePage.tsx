@@ -69,20 +69,35 @@ function HeroSection() {
         className="absolute inset-0 animate-gradient"
         style={{
           background:
-            "linear-gradient(135deg, #0a0f14 0%, #0d1a2a 25%, #0a1628 50%, #111b24 75%, #0a0f14 100%)",
+            "linear-gradient(135deg, #050508 0%, #0d0520 25%, #130a2e 50%, #0d0520 75%, #050508 100%)",
         }}
       />
-      {/* Radial glow */}
+      {/* Radial glow orbs */}
       <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 rounded-full opacity-30 blur-3xl"
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-40 blur-3xl animate-pulse"
         style={{
-          background: "radial-gradient(circle, #2fd4ff 0%, transparent 70%)",
+          background: "radial-gradient(circle, #a855f7 0%, transparent 70%)",
         }}
       />
       <div
-        className="absolute left-1/4 bottom-1/4 w-64 h-64 rounded-full opacity-20 blur-3xl"
+        className="absolute left-1/4 bottom-1/4 w-80 h-80 rounded-full opacity-30 blur-3xl"
         style={{
-          background: "radial-gradient(circle, #38e6d6 0%, transparent 70%)",
+          background: "radial-gradient(circle, #d946ef 0%, transparent 70%)",
+          animation: "orbFloat 10s ease-in-out infinite",
+        }}
+      />
+      <div
+        className="absolute left-0 top-1/3 w-72 h-72 rounded-full opacity-25 blur-3xl"
+        style={{
+          background: "radial-gradient(circle, #6d28d9 0%, transparent 70%)",
+          animation: "orbFloat 12s ease-in-out infinite reverse",
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-1/4 w-64 h-64 rounded-full opacity-20 blur-2xl"
+        style={{
+          background: "radial-gradient(circle, #e879f9 0%, transparent 70%)",
+          animation: "orbFloat 7s ease-in-out infinite",
         }}
       />
 
@@ -97,7 +112,12 @@ function HeroSection() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{
+                delay: 0.2,
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-luxe-cyan/30 text-luxe-cyan text-xs font-semibold uppercase tracking-widest mb-6"
             >
               <Zap size={12} className="fill-luxe-cyan" />
@@ -119,8 +139,9 @@ function HeroSection() {
             <div className="flex flex-wrap gap-4">
               <Link to="/products">
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   className="btn-primary text-sm font-bold uppercase tracking-widest"
                   data-ocid="hero.primary_button"
                 >
@@ -129,8 +150,9 @@ function HeroSection() {
               </Link>
               <Link to="/about">
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   className="btn-outline text-sm font-bold uppercase tracking-widest"
                   data-ocid="hero.secondary_button"
                 >
@@ -146,12 +168,16 @@ function HeroSection() {
                 ["500+", "Premium Products"],
                 ["4.9", "Star Rating"],
               ].map(([num, label]) => (
-                <div key={label}>
+                <motion.div
+                  key={label}
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
                   <p className="font-display text-2xl font-black text-foreground">
                     {num}
                   </p>
                   <p className="text-xs text-muted-foreground">{label}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -178,8 +204,19 @@ function HeroSection() {
               {/* Floating price tag */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 }}
+                animate={{ opacity: 1, scale: 1, y: [0, -4, 0] }}
+                transition={{
+                  delay: 0.8,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 15,
+                  y: {
+                    delay: 1.2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    duration: 2.5,
+                    ease: "easeInOut",
+                  },
+                }}
                 className="absolute bottom-6 left-6 glass-card rounded-2xl p-4 min-w-[160px]"
               >
                 <p className="text-xs text-muted-foreground uppercase tracking-widest">
@@ -218,7 +255,13 @@ function HeroSection() {
         </span>
         <motion.div
           animate={{ y: [0, 6, 0] }}
-          transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}
+          transition={{
+            repeat: Number.POSITIVE_INFINITY,
+            duration: 1,
+            type: "spring",
+            stiffness: 300,
+            damping: 10,
+          }}
         >
           <ArrowDown size={16} className="text-muted-foreground" />
         </motion.div>
@@ -230,52 +273,157 @@ function HeroSection() {
 function CategoriesSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const cardWidth = scrollRef.current.offsetWidth / 4;
+    scrollRef.current.scrollBy({
+      left: dir === "right" ? cardWidth : -cardWidth,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <section ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        className="mb-10"
+      {/* Header */}
+      <div className="flex items-end justify-between mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+        >
+          <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
+            Browse by Category
+          </p>
+          <h2 className="font-display text-4xl font-black uppercase text-foreground mb-3">
+            Featured Categories
+          </h2>
+          {/* Decorative gradient line */}
+          <div
+            className="h-[3px] w-40 rounded-full"
+            style={{
+              background:
+                "linear-gradient(90deg, #a855f7 0%, #d946ef 60%, transparent 100%)",
+            }}
+          />
+        </motion.div>
+
+        {/* Scroll arrows */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="flex gap-2"
+        >
+          <motion.button
+            type="button"
+            onClick={() => scroll("left")}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.85, rotate: -5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            className="p-3 rounded-full glass-card border border-border/50 hover:border-purple-500/60 transition-all"
+            data-ocid="categories.pagination_prev"
+          >
+            <ChevronLeft size={18} />
+          </motion.button>
+          <motion.button
+            type="button"
+            onClick={() => scroll("right")}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.85, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            className="p-3 rounded-full glass-card border border-border/50 hover:border-purple-500/60 transition-all"
+            data-ocid="categories.pagination_next"
+          >
+            <ChevronRight size={18} />
+          </motion.button>
+        </motion.div>
+      </div>
+
+      {/* Carousel */}
+      <div
+        ref={scrollRef}
+        className="flex gap-5 overflow-x-auto pb-4"
+        style={{ scrollbarWidth: "none" }}
       >
-        <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
-          Browse by Category
-        </p>
-        <h2 className="font-display text-4xl font-black uppercase text-foreground">
-          Featured Categories
-        </h2>
-      </motion.div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {CATEGORY_LIST.map((cat, i) => (
           <motion.div
             key={cat.name}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: i * 0.08 }}
+            transition={{
+              type: "spring",
+              stiffness: 280,
+              damping: 22,
+              delay: i * 0.07,
+            }}
+            className="flex-shrink-0 w-[calc(25%-15px)] min-w-[200px]"
           >
             <Link to="/products" data-ocid={`categories.item.${i + 1}`}>
-              <div className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer">
+              <motion.div
+                whileHover={{ scale: 1.03, y: -6 }}
+                transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                className="group relative rounded-2xl overflow-hidden cursor-pointer"
+                style={{ aspectRatio: "2/3" }}
+              >
+                {/* Background image */}
                 <img
                   src={cat.image}
                   alt={cat.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-2xl mb-1">{cat.icon}</p>
-                  <p className="font-display font-bold text-white uppercase tracking-wide text-sm">
-                    {cat.name}
-                  </p>
-                </div>
+
+                {/* Base gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+                {/* Purple shimmer on hover */}
                 <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(47,212,255,0.2) 0%, transparent 100%)",
+                      "linear-gradient(135deg, rgba(168,85,247,0.25) 0%, rgba(217,70,239,0.15) 50%, transparent 100%)",
                   }}
                 />
-              </div>
+
+                {/* Animated shimmer sweep */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                  style={{
+                    background:
+                      "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%)",
+                    transform: "translateX(-100%)",
+                    animation: "none",
+                  }}
+                />
+
+                {/* Glowing border */}
+                <div
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+                  style={{
+                    boxShadow:
+                      "inset 0 0 0 1.5px rgba(168,85,247,0.7), 0 0 30px rgba(168,85,247,0.35)",
+                  }}
+                />
+
+                {/* Text block */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-center text-center">
+                  <p className="font-display font-black text-white uppercase tracking-[0.15em] text-base leading-tight">
+                    {cat.name}
+                  </p>
+                  {/* Purple accent underline */}
+                  <div
+                    className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
+                    style={{
+                      background: "linear-gradient(90deg, #a855f7, #d946ef)",
+                    }}
+                  />
+                  {/* Shop Now — fades in on hover */}
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-purple-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                    Shop Now →
+                  </p>
+                </div>
+              </motion.div>
             </Link>
           </motion.div>
         ))}
@@ -302,10 +450,33 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
   return (
     <section
       ref={ref}
-      className="py-20"
-      style={{ background: "rgba(17, 27, 36, 0.5)" }}
+      className="py-20 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(180deg, #06000f 0%, #0f0530 100%)",
+      }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      {/* Floating orbs */}
+      <div
+        className="orb-purple"
+        style={{
+          width: 400,
+          height: 400,
+          top: "10%",
+          left: "-5%",
+          opacity: 0.25,
+        }}
+      />
+      <div
+        className="orb-pink"
+        style={{
+          width: 300,
+          height: 300,
+          bottom: "10%",
+          right: "-3%",
+          opacity: 0.2,
+        }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="flex items-end justify-between mb-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -319,22 +490,28 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
             </h2>
           </motion.div>
           <div className="flex gap-2">
-            <button
+            <motion.button
               type="button"
               onClick={() => scroll("left")}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.85, rotate: -5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
               className="p-3 rounded-full glass-card border border-border/50 hover:border-luxe-cyan/50 transition-all"
               data-ocid="trending.pagination_prev"
             >
               <ChevronLeft size={18} />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={() => scroll("right")}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.85, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
               className="p-3 rounded-full glass-card border border-border/50 hover:border-luxe-cyan/50 transition-all"
               data-ocid="trending.pagination_next"
             >
               <ChevronRight size={18} />
-            </button>
+            </motion.button>
           </div>
         </div>
         <div
@@ -365,8 +542,8 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
         className="rounded-3xl p-8 md:p-12 relative overflow-hidden"
         style={{
           background:
-            "linear-gradient(135deg, #0a1628 0%, #0d2040 50%, #0a1628 100%)",
-          border: "1px solid rgba(47, 212, 255, 0.2)",
+            "linear-gradient(135deg, #080015 0%, #1a0845 40%, #2d0a6e 60%, #080015 100%)",
+          border: "1px solid rgba(168, 85, 247, 0.2)",
         }}
       >
         {/* Glow */}
@@ -374,7 +551,7 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
           className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent, #2fd4ff, transparent)",
+              "linear-gradient(90deg, transparent, #a855f7, transparent)",
           }}
         />
 
@@ -403,8 +580,14 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
               key={product.id}
               initial={{ opacity: 0, y: 30 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.1 }}
-              className="group rounded-2xl overflow-hidden border border-border/50 bg-white/5 hover:border-luxe-cyan/40 transition-all duration-300"
+              whileHover={{ scale: 1.03, y: -4 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 18,
+                delay: i * 0.1,
+              }}
+              className="group rounded-2xl overflow-hidden border border-border/50 bg-white/5 hover:border-luxe-cyan/40"
               data-ocid={`flashsale.item.${i + 1}`}
             >
               <div className="aspect-square overflow-hidden">
@@ -436,8 +619,10 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
                     %
                   </span>
                 </div>
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.88 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
                   onClick={() =>
                     addItem({
                       productId: product.id,
@@ -448,11 +633,11 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
                       color: product.colors[0] ?? "#000",
                     })
                   }
-                  className="w-full mt-3 py-2 rounded-xl bg-luxe-cyan/10 border border-luxe-cyan/30 text-luxe-cyan text-xs font-bold hover:bg-luxe-cyan hover:text-[#0a0f14] transition-all duration-300"
+                  className="w-full mt-3 py-2 rounded-xl bg-luxe-cyan/10 border border-luxe-cyan/30 text-luxe-cyan text-xs font-bold hover:bg-luxe-cyan hover:text-white transition-all duration-300"
                   data-ocid={`flashsale.primary_button.${i + 1}`}
                 >
                   Add to Cart
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           ))}
@@ -469,10 +654,33 @@ function TestimonialsSection() {
   return (
     <section
       ref={ref}
-      className="py-20"
-      style={{ background: "rgba(17, 27, 36, 0.5)" }}
+      className="py-20 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(180deg, #06000f 0%, #0f0530 100%)",
+      }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      {/* Floating orbs */}
+      <div
+        className="orb-purple"
+        style={{
+          width: 400,
+          height: 400,
+          top: "10%",
+          left: "-5%",
+          opacity: 0.25,
+        }}
+      />
+      <div
+        className="orb-pink"
+        style={{
+          width: 300,
+          height: 300,
+          bottom: "10%",
+          right: "-3%",
+          opacity: 0.2,
+        }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -481,7 +689,7 @@ function TestimonialsSection() {
           <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
             What People Say
           </p>
-          <h2 className="font-display text-4xl font-black uppercase text-foreground">
+          <h2 className="font-display text-4xl font-black uppercase gradient-text-vivid">
             Customer Stories
           </h2>
         </motion.div>
@@ -491,7 +699,13 @@ function TestimonialsSection() {
               key={t.id}
               initial={{ opacity: 0, y: 30 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.1 }}
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 20,
+                delay: i * 0.1,
+              }}
               className="glass-card rounded-2xl p-6"
               data-ocid={`testimonials.item.${i + 1}`}
             >
@@ -554,7 +768,12 @@ function BrandsSection() {
             key={brand}
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
-            transition={{ delay: i * 0.05 }}
+            whileHover={{ scale: 1.15, y: -3 }}
+            transition={{
+              opacity: { delay: i * 0.05 },
+              scale: { type: "spring", stiffness: 400, damping: 12 },
+              y: { type: "spring", stiffness: 400, damping: 12 },
+            }}
             className="font-display font-black text-xl text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors uppercase tracking-widest cursor-default"
           >
             {brand}

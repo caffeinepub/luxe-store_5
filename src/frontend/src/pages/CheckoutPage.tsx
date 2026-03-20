@@ -38,7 +38,7 @@ function StepIndicator({ current }: { current: number }) {
                 }`}
               >
                 {done ? (
-                  <Check size={16} className="text-[#0a0f14]" />
+                  <Check size={16} className="text-white" />
                 ) : (
                   <step.icon
                     size={16}

@@ -70,14 +70,14 @@ export default function ProductListingPage() {
       <div
         className="py-12 px-4 sm:px-6 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #0a0f14 0%, #0d1a2a 100%)",
+          background: "linear-gradient(135deg, #050508 0%, #0d0520 100%)",
         }}
       >
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 100%, rgba(47,212,255,0.08) 0%, transparent 70%)",
+              "radial-gradient(ellipse at 50% 100%, rgba(168,85,247,0.08) 0%, transparent 70%)",
           }}
         />
         <div className="max-w-7xl mx-auto relative">
@@ -160,7 +160,7 @@ export default function ProductListingPage() {
                       onClick={() => setMinRating(r)}
                       className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                         minRating === r
-                          ? "bg-luxe-cyan text-[#0a0f14] border-transparent"
+                          ? "bg-luxe-cyan text-white border-transparent"
                           : "border-border/50 text-muted-foreground hover:border-luxe-cyan/50"
                       }`}
                       data-ocid="products.toggle"

@@ -212,7 +212,7 @@ export default function ProductDetailPage() {
                       onClick={() => setSelectedSize(size)}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
                         selectedSize === size
-                          ? "bg-luxe-cyan text-[#0a0f14] border-transparent"
+                          ? "bg-luxe-cyan text-white border-transparent"
                           : "border-border/50 text-muted-foreground hover:border-luxe-cyan/50"
                       }`}
                       data-ocid="product.toggle"
@@ -401,7 +401,7 @@ export default function ProductDetailPage() {
             exit={{ y: 100 }}
             className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 px-4 py-4"
             style={{
-              background: "rgba(10, 15, 20, 0.95)",
+              background: "rgba(5, 2, 15, 0.97)",
               backdropFilter: "blur(20px)",
             }}
           >

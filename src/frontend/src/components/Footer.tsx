@@ -68,7 +68,15 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t border-border/50 mt-20">
+    <footer
+      className="border-t mt-20"
+      style={{
+        background: "linear-gradient(180deg, #06000f 0%, #020008 100%)",
+        borderColor: "rgba(147, 51, 234, 0.5)",
+        borderTopWidth: "2px",
+        boxShadow: "0 -2px 40px rgba(147, 51, 234, 0.2)",
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           <div className="lg:col-span-2">

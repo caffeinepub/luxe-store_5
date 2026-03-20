@@ -72,9 +72,12 @@ export default {
           ring: "oklch(var(--sidebar-ring))",
         },
         luxe: {
-          cyan: "oklch(var(--luxe-cyan))",
-          aqua: "oklch(var(--luxe-aqua))",
+          cyan: "oklch(var(--luxe-purple))",
+          aqua: "oklch(var(--luxe-pink))",
           dark: "oklch(var(--luxe-dark))",
+          purple: "oklch(var(--luxe-purple))",
+          pink: "oklch(var(--luxe-pink))",
+          violet: "oklch(var(--luxe-violet))",
         },
       },
       borderRadius: {
@@ -86,7 +89,8 @@ export default {
       boxShadow: {
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
         glass: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
-        cyan: "0 0 30px rgba(47, 212, 255, 0.3), 0 0 60px rgba(47, 212, 255, 0.1)",
+        cyan: "0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1)",
+        purple: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(168, 85, 247, 0.15)",
         "product": "0 20px 60px rgba(0,0,0,0.5)",
       },
       keyframes: {
@@ -111,6 +115,15 @@ export default {
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
         },
+        orbFloat: {
+          "0%, 100%": { transform: "translate(0px, 0px) scale(1)" },
+          "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+          "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+        },
+        pulseGlow: {
+          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.05)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -118,6 +131,8 @@ export default {
         shimmer: "shimmer 1.5s infinite",
         float: "float 6s ease-in-out infinite",
         gradientMove: "gradientMove 8s ease infinite",
+        orbFloat: "orbFloat 15s ease-in-out infinite",
+        pulseGlow: "pulseGlow 3s ease-in-out infinite",
       },
     },
   },
