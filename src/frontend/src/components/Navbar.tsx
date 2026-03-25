@@ -45,9 +45,15 @@ export default function Navbar() {
           }`}
           style={{
             background: scrolled
-              ? "rgba(5, 2, 15, 0.92)"
-              : "rgba(5, 2, 15, 0.6)",
-            borderColor: scrolled ? "rgba(120, 60, 200, 0.5)" : "transparent",
+              ? "var(--navbar-bg-scrolled)"
+              : "var(--navbar-bg)",
+            borderColor: scrolled
+              ? "var(--navbar-border-scrolled)"
+              : "transparent",
+            ...(scrolled && {
+              boxShadow:
+                "0 0 30px rgba(0,255,255,0.1), 0 2px 20px rgba(0,0,0,0.6)",
+            }),
           }}
         >
           <Link
@@ -55,7 +61,13 @@ export default function Navbar() {
             className="flex items-center gap-2 group"
             data-ocid="nav.link"
           >
-            <span className="font-display text-2xl font-black tracking-wider text-foreground">
+            <span
+              className="font-display text-2xl font-black tracking-wider text-foreground neon-pulse"
+              style={{
+                textShadow:
+                  "0 0 10px rgba(0,255,255,0.5), 0 0 20px rgba(0,255,255,0.25)",
+              }}
+            >
               LU<span className="gradient-text">XE</span>
             </span>
           </Link>
@@ -65,12 +77,27 @@ export default function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 relative group"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 relative group"
+                style={{
+                  textShadow: "none",
+                }}
                 data-ocid="nav.link"
-                activeProps={{ className: "text-luxe-cyan" }}
+                activeProps={{
+                  className: "text-foreground",
+                  style: {
+                    textShadow:
+                      "0 0 10px rgba(0,255,255,0.8), 0 0 20px rgba(0,255,255,0.4)",
+                  },
+                }}
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-luxe-cyan group-hover:w-full transition-all duration-300" />
+                <span
+                  className="absolute -bottom-1 left-0 w-0 h-[1px] group-hover:w-full transition-all duration-300"
+                  style={{
+                    background: "linear-gradient(90deg, #00ffff, #ff00ff)",
+                    boxShadow: "0 0 6px #00ffff",
+                  }}
+                />
               </Link>
             ))}
           </div>
@@ -81,6 +108,15 @@ export default function Navbar() {
               whileTap={{ scale: 0.9 }}
               onClick={() => setSearchOpen(!searchOpen)}
               className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all duration-200"
+              style={{ filter: "drop-shadow(0 0 0px transparent)" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.filter =
+                  "drop-shadow(0 0 6px #00ffff)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.filter =
+                  "drop-shadow(0 0 0px transparent)";
+              }}
               data-ocid="nav.search_input"
               aria-label="Search"
             >
@@ -94,7 +130,12 @@ export default function Navbar() {
             >
               <Heart size={18} />
               {wishlistItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-luxe-cyan text-[10px] font-bold text-white flex items-center justify-center">
+                <span
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-black flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, #00ccff, #ff00ff)",
+                  }}
+                >
                   {wishlistItems.length}
                 </span>
               )}
@@ -113,7 +154,10 @@ export default function Navbar() {
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-luxe-cyan text-[10px] font-bold text-white flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-black flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, #00ccff, #ff00ff)",
+                  }}
                 >
                   {totalCount}
                 </motion.span>
@@ -174,7 +218,13 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-xl px-4"
           >
-            <div className="glass-card rounded-2xl p-4">
+            <div
+              className="glass-card rounded-2xl p-4"
+              style={{
+                boxShadow:
+                  "0 0 30px rgba(0,255,255,0.15), 0 0 60px rgba(255,0,255,0.08)",
+              }}
+            >
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

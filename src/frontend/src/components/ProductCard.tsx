@@ -40,26 +40,36 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -10 }}
+      whileHover={{
+        y: -10,
+        transition: { type: "spring", stiffness: 500, damping: 20 },
+      }}
       transition={{
         delay: index * 0.05,
         type: "spring",
         stiffness: 300,
         damping: 20,
       }}
-      className="group product-card-hover"
+      className="group product-card-hover neon-border-card"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <Link to="/products/$id" params={{ id: product.id }}>
-        <div className="relative rounded-2xl overflow-hidden bg-card border border-border/50">
+        <div
+          className="relative rounded-2xl overflow-hidden bg-card border border-border/50 transition-all duration-300"
+          style={{
+            boxShadow: hovered
+              ? "0 0 30px rgba(0,255,255,0.45), 0 0 60px rgba(255,0,255,0.2)"
+              : "0 4px 20px rgba(0,0,0,0.4)",
+          }}
+        >
           <div className="relative aspect-[4/3] overflow-hidden bg-muted">
             <motion.img
               src={image}
               alt={product.title}
               className="w-full h-full object-cover"
               animate={{ scale: hovered ? 1.08 : 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
               loading="lazy"
             />
             <div
@@ -67,13 +77,28 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 hovered ? "opacity-100" : "opacity-50"
               }`}
             />
+            {/* Cyan glow overlay on hover */}
+            {hovered && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(0,255,255,0.12) 0%, rgba(255,0,255,0.08) 100%)",
+                }}
+              />
+            )}
 
             <div className="absolute top-3 left-3 flex flex-col gap-1">
               {product.isFlashSale && (
                 <motion.span
                   animate={{ scale: [1, 1.08, 1] }}
                   transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
-                  className="px-2 py-0.5 rounded-full bg-red-500 text-white text-xs font-bold uppercase tracking-wide"
+                  className="px-2 py-0.5 rounded-full text-black text-xs font-bold uppercase tracking-wide"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)",
+                    boxShadow: "0 0 10px rgba(0,255,255,0.5)",
+                  }}
                 >
                   Sale {discount}% OFF
                 </motion.span>
@@ -85,7 +110,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                   className="px-2 py-0.5 rounded-full text-white text-xs font-bold uppercase tracking-wide"
                   style={{
                     background:
-                      "linear-gradient(135deg, #9333ea 0%, #d946ef 100%)",
+                      "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)",
+                    boxShadow: "0 0 10px rgba(255,0,255,0.5)",
                   }}
                 >
                   Trending
@@ -121,19 +147,28 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               onClick={handleAddToCart}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: hovered ? 0 : 20, opacity: hovered ? 1 : 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2 py-2.5 rounded-xl backdrop-blur-md border border-purple-500/30 text-white text-sm font-semibold transition-all duration-300"
-              style={{ background: "rgba(80, 20, 120, 0.7)" }}
+              transition={{ duration: 0 }}
+              className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2 py-2.5 rounded-xl backdrop-blur-md text-white text-sm font-semibold transition-all"
+              style={{
+                background: "rgba(0,20,30,0.75)",
+                border: "1px solid rgba(0,255,255,0.4)",
+                boxShadow: "0 0 15px rgba(0,255,255,0.25)",
+              }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background =
-                  "linear-gradient(135deg, #9333ea 0%, #d946ef 100%)";
+                  "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)";
                 (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 0 20px rgba(147,51,234,0.5)";
+                  "0 0 20px rgba(0,255,255,0.6), 0 0 40px rgba(255,0,255,0.3)";
+                (e.currentTarget as HTMLButtonElement).style.border =
+                  "1px solid rgba(0,255,255,0.8)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background =
-                  "rgba(80, 20, 120, 0.7)";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+                  "rgba(0,20,30,0.75)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 15px rgba(0,255,255,0.25)";
+                (e.currentTarget as HTMLButtonElement).style.border =
+                  "1px solid rgba(0,255,255,0.4)";
               }}
               data-ocid={`products.item.${index + 1}`}
             >

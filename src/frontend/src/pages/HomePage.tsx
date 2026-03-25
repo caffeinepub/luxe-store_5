@@ -1,13 +1,134 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ChevronLeft, ChevronRight, Star, Zap } from "lucide-react";
-import { AnimatePresence, motion, useInView } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useInView,
+  useScroll,
+  useSpring,
+} from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../contexts/CartContext";
 import { useAllProducts } from "../hooks/useQueries";
 import { CATEGORY_LIST, getProductImage } from "../lib/imageUtils";
 import { mockProducts, testimonials } from "../lib/mockData";
 
+// ─── Scroll Progress Bar ───────────────────────────────────────────────────────
+function ScrollProgressBar() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 200,
+    damping: 30,
+    restDelta: 0.001,
+  });
+  return (
+    <motion.div
+      style={{ scaleX, transformOrigin: "left" }}
+      className="fixed top-0 left-0 right-0 h-[2px] z-[9999]"
+      data-ocid="scroll.progress"
+    >
+      <div
+        className="h-full w-full"
+        style={{
+          background: "linear-gradient(90deg, #00ffff, #ff00ff, #00ffff)",
+        }}
+      />
+    </motion.div>
+  );
+}
+
+// ─── Marquee Strip ─────────────────────────────────────────────────────────────
+const MARQUEE_TEXT =
+  "LUXE STORE • PREMIUM QUALITY • FREE SHIPPING • NEW ARRIVALS • EXCLUSIVE DEALS • FLASH SALE • SHOP NOW • ";
+
+const MARQUEE_WORDS = MARQUEE_TEXT.split(" ").filter(Boolean);
+
+function MarqueeWordList() {
+  return (
+    <>
+      {MARQUEE_WORDS.map((word, i) => (
+        <span
+          // biome-ignore lint/suspicious/noArrayIndexKey: static marquee
+          key={i}
+          className="inline-block text-xs font-bold uppercase tracking-[0.25em] mr-4"
+          style={{
+            color: i % 2 === 0 ? "rgba(0,255,255,0.9)" : "rgba(255,0,255,0.85)",
+            textShadow: i % 2 === 0 ? "0 0 8px #00ffff" : "0 0 8px #ff00ff",
+          }}
+        >
+          {word}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function MarqueeStrip() {
+  return (
+    <div
+      className="relative overflow-hidden py-3"
+      style={{
+        background: "rgba(2,2,8,0.98)",
+        borderTop: "1px solid rgba(0,255,255,0.35)",
+        borderBottom: "1px solid rgba(0,255,255,0.35)",
+      }}
+    >
+      <div className="marquee-track whitespace-nowrap">
+        <MarqueeWordList />
+        <MarqueeWordList />
+      </div>
+    </div>
+  );
+}
+
+// ─── Animated Word Heading ─────────────────────────────────────────────────────
+function AnimatedWordHeading({
+  text,
+  className,
+}: { text: string; className?: string }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [isGlitching, setIsGlitching] = useState(false);
+  const words = text.split(" ");
+
+  useEffect(() => {
+    if (inView) {
+      const timer = setTimeout(() => {
+        setIsGlitching(true);
+        setTimeout(() => setIsGlitching(false), 600);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [inView]);
+
+  return (
+    <h2
+      ref={ref}
+      className={`${className ?? ""}${isGlitching ? " heading-glitch" : ""}`}
+      aria-label={text}
+    >
+      {words.map((word, i) => (
+        <motion.span
+          // biome-ignore lint/suspicious/noArrayIndexKey: static text words
+          key={i}
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{
+            duration: 0.5,
+            delay: i * 0.1,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="inline-block mr-[0.3em]"
+        >
+          {word}
+        </motion.span>
+      ))}
+    </h2>
+  );
+}
+
+// ─── Countdown Timer ────────────────────────────────────────────────────────────
 function CountdownTimer() {
   const endTime = useRef(Date.now() + 24 * 60 * 60 * 1000);
   const [timeLeft, setTimeLeft] = useState({ h: 23, m: 59, s: 59 });
@@ -30,28 +151,24 @@ function CountdownTimer() {
 
   return (
     <div className="flex items-center gap-3">
-      {[
-        ["h", timeLeft.h],
-        ["m", timeLeft.m],
-        ["s", timeLeft.s],
-      ].map(([label, val]) => (
-        <div key={label as string} className="text-center">
+      {(["h", "m", "s"] as const).map((label) => (
+        <div key={label} className="text-center">
           <div className="w-14 h-14 glass-card rounded-xl flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.span
-                key={val as number}
+                key={timeLeft[label]}
                 initial={{ y: -10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 10, opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="font-display text-2xl font-black text-luxe-cyan"
               >
-                {String(val as number).padStart(2, "0")}
+                {String(timeLeft[label]).padStart(2, "0")}
               </motion.span>
             </AnimatePresence>
           </div>
           <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">
-            {label as string}
+            {label}
           </p>
         </div>
       ))}
@@ -59,45 +176,478 @@ function CountdownTimer() {
   );
 }
 
-function HeroSection() {
-  const heroImage =
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=700&q=90";
+// ─── Hero Right Panel ──────────────────────────────────────────────────────────
+const SHOE_IMAGES = [
+  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=90",
+  "https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=90",
+  "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=90",
+];
+
+const MINI_CARDS = [
+  {
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&q=80",
+    label: "Watch Pro",
+    price: "$249",
+    style: { top: "5%", right: "0%" },
+    delay: 0,
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=100&q=80",
+    label: "Luxe Scent",
+    price: "$89",
+    style: { top: "42%", right: "-5%" },
+    delay: 1.2,
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80",
+    label: "AirPods Max",
+    price: "$179",
+    style: { bottom: "8%", right: "2%" },
+    delay: 2.4,
+  },
+];
+
+function HeroRightPanel() {
+  const [activeShoe, setActiveShoe] = useState(0);
+
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Animated gradient background */}
+    <motion.div
+      initial={{ opacity: 0, x: 60 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      className="relative hidden lg:flex items-center justify-center"
+      style={{ width: "100%", height: 580 }}
+    >
+      {/* Color orbs behind */}
       <div
-        className="absolute inset-0 animate-gradient"
+        className="absolute pointer-events-none"
         style={{
+          width: 200,
+          height: 200,
+          top: "5%",
+          left: "5%",
+          borderRadius: "50%",
           background:
-            "linear-gradient(135deg, #050508 0%, #0d0520 25%, #130a2e 50%, #0d0520 75%, #050508 100%)",
-        }}
-      />
-      {/* Radial glow orbs */}
-      <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-40 blur-3xl animate-pulse"
-        style={{
-          background: "radial-gradient(circle, #a855f7 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(0,255,255,0.45) 0%, transparent 70%)",
+          filter: "blur(40px)",
+          animation: "pulse 4s ease-in-out infinite",
         }}
       />
       <div
-        className="absolute left-1/4 bottom-1/4 w-80 h-80 rounded-full opacity-30 blur-3xl"
+        className="absolute pointer-events-none"
         style={{
-          background: "radial-gradient(circle, #d946ef 0%, transparent 70%)",
-          animation: "orbFloat 10s ease-in-out infinite",
+          width: 150,
+          height: 150,
+          bottom: "10%",
+          right: "8%",
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(255,0,255,0.45) 0%, transparent 70%)",
+          filter: "blur(32px)",
+          animation: "pulse 5s ease-in-out infinite 1s",
+        }}
+      />
+
+      {/* Glowing platform disc */}
+      <motion.div
+        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.5, 0.8, 0.5] }}
+        transition={{
+          duration: 3,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+        className="absolute"
+        style={{
+          width: 520,
+          height: 520,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(0,255,255,0.3) 0%, rgba(255,0,255,0.18) 40%, transparent 70%)",
+          filter: "blur(6px)",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Orbital rings */}
+      {/* Outer ring */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{
+          duration: 40,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "linear",
+        }}
+        className="absolute"
+        style={{
+          width: 520,
+          height: 520,
+          borderRadius: "50%",
+          border: "1.5px dashed rgba(0,255,255,0.6)",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 2,
+        }}
+      />
+      {/* Middle ring */}
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{
+          duration: 28,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "linear",
+        }}
+        className="absolute"
+        style={{
+          width: 400,
+          height: 400,
+          borderRadius: "50%",
+          border: "1px dotted rgba(255,0,255,0.5)",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 2,
+        }}
+      />
+      {/* Inner ring */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{
+          duration: 18,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "linear",
+        }}
+        className="absolute"
+        style={{
+          width: 280,
+          height: 280,
+          borderRadius: "50%",
+          border: "1px solid rgba(57,255,20,0.3)",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 2,
+        }}
+      />
+
+      {/* Main shoe image */}
+      <motion.div
+        animate={{ y: [0, -18, 0] }}
+        transition={{
+          duration: 4,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+        style={{
+          position: "relative",
+          zIndex: 10,
+          transform: "perspective(900px) rotateY(-8deg) rotateX(4deg)",
+          filter: "drop-shadow(0 30px 60px rgba(168,85,247,0.45))",
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={activeShoe}
+            src={SHOE_IMAGES[activeShoe]}
+            alt="Featured Shoe"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              width: 340,
+              height: 260,
+              objectFit: "cover",
+              borderRadius: 20,
+            }}
+          />
+        </AnimatePresence>
+
+        {/* NEW ARRIVAL badge */}
+        <motion.div
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{
+            duration: 2,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+          }}
+          style={{
+            position: "absolute",
+            top: -14,
+            left: -10,
+            background: "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)",
+            borderRadius: 8,
+            padding: "4px 10px",
+            fontSize: 10,
+            fontWeight: 900,
+            color: "#fff",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            transform: "rotate(-2deg)",
+            boxShadow: "0 4px 18px rgba(168,85,247,0.6)",
+            zIndex: 20,
+          }}
+        >
+          New Arrival
+        </motion.div>
+      </motion.div>
+
+      {/* Mini product cards */}
+      {MINI_CARDS.map((card) => (
+        <motion.div
+          key={card.label}
+          animate={{ y: [0, -10, 0] }}
+          transition={{
+            duration: 3,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+            delay: card.delay,
+          }}
+          style={{
+            position: "absolute",
+            ...card.style,
+            zIndex: 15,
+          }}
+        >
+          <div
+            style={{
+              width: 112,
+              background: "rgba(255,255,255,0.1)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 16,
+              padding: 8,
+            }}
+          >
+            <img
+              src={card.image}
+              alt={card.label}
+              style={{
+                width: "100%",
+                height: 64,
+                objectFit: "cover",
+                borderRadius: 10,
+              }}
+            />
+            <p
+              style={{
+                color: "#e9d5ff",
+                fontWeight: 700,
+                fontSize: 11,
+                marginTop: 6,
+                textAlign: "center",
+              }}
+            >
+              {card.label}
+            </p>
+            <p
+              style={{
+                color: "#d946ef",
+                fontWeight: 900,
+                fontSize: 12,
+                textAlign: "center",
+              }}
+            >
+              {card.price}
+            </p>
+          </div>
+        </motion.div>
+      ))}
+
+      {/* Color selector dots */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 12,
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: 10,
+          zIndex: 20,
+        }}
+      >
+        {SHOE_IMAGES.map((shoeUrl, idx) => (
+          <motion.button
+            key={shoeUrl}
+            type="button"
+            onClick={() => setActiveShoe(idx)}
+            whileHover={{ scale: 1.3 }}
+            whileTap={{ scale: 0.85 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background:
+                activeShoe === idx
+                  ? "linear-gradient(135deg, #00ccff, #ff00ff)"
+                  : "transparent",
+              border:
+                activeShoe === idx
+                  ? "2px solid #ff00ff"
+                  : "2px solid rgba(0,255,255,0.5)",
+              cursor: "pointer",
+              padding: 0,
+              boxShadow:
+                activeShoe === idx ? "0 0 10px rgba(0,255,255,0.8)" : "none",
+            }}
+            data-ocid={`hero.toggle.${idx + 1}`}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Hero Section ───────────────────────────────────────────────────────────────
+function HeroSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [shopBtnMag, setShopBtnMag] = useState({ x: 0, y: 0 });
+  const [exploreBtnMag, setExploreBtnMag] = useState({ x: 0, y: 0 });
+  const [heroGlitch, setHeroGlitch] = useState(false);
+  const shopBtnRef = useRef<HTMLButtonElement>(null);
+  const exploreBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Periodic hero headline glitch every 5-7 seconds
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const delay = 5000 + Math.random() * 2000;
+      timeoutId = setTimeout(() => {
+        setHeroGlitch(true);
+        setTimeout(() => {
+          setHeroGlitch(false);
+          schedule();
+        }, 400);
+      }, delay);
+    };
+    schedule();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  const handleMagneticMove = useCallback(
+    (
+      e: React.MouseEvent,
+      setMag: (v: { x: number; y: number }) => void,
+      ref: React.RefObject<HTMLButtonElement | null>,
+    ) => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) * 0.4;
+      const dy = (e.clientY - cy) * 0.4;
+      setMag({
+        x: Math.max(-8, Math.min(8, dx)),
+        y: Math.max(-8, Math.min(8, dy)),
+      });
+    },
+    [],
+  );
+
+  // Split headline
+  let charIdx = 0;
+
+  return (
+    <section
+      ref={sectionRef}
+      onMouseMove={handleMouseMove}
+      className="relative min-h-screen flex items-center overflow-hidden scanline-overlay"
+    >
+      {/* Aurora background blobs */}
+      <div
+        className="absolute inset-0"
+        style={{ background: "var(--hero-bg)" }}
+      />
+      {/* Grid dot background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(0,255,255,0.12) 1px, transparent 1px)",
+          backgroundSize: "30px 30px",
+          zIndex: 0,
         }}
       />
       <div
-        className="absolute left-0 top-1/3 w-72 h-72 rounded-full opacity-25 blur-3xl"
+        className="aurora-blob absolute"
         style={{
-          background: "radial-gradient(circle, #6d28d9 0%, transparent 70%)",
-          animation: "orbFloat 12s ease-in-out infinite reverse",
+          width: 600,
+          height: 600,
+          top: "-10%",
+          right: "-5%",
+          background:
+            "radial-gradient(ellipse, rgba(0,255,255,0.35) 0%, rgba(0,180,255,0.15) 50%, transparent 70%)",
+          animationDelay: "0s",
+          animationDuration: "14s",
         }}
       />
       <div
-        className="absolute left-1/2 top-1/4 w-64 h-64 rounded-full opacity-20 blur-2xl"
+        className="aurora-blob absolute"
         style={{
-          background: "radial-gradient(circle, #e879f9 0%, transparent 70%)",
-          animation: "orbFloat 7s ease-in-out infinite",
+          width: 500,
+          height: 500,
+          bottom: "-5%",
+          left: "-8%",
+          background:
+            "radial-gradient(ellipse, rgba(255,0,255,0.3) 0%, rgba(180,0,255,0.12) 50%, transparent 70%)",
+          animationDelay: "-5s",
+          animationDuration: "18s",
+        }}
+      />
+      <div
+        className="aurora-blob absolute"
+        style={{
+          width: 400,
+          height: 400,
+          top: "30%",
+          left: "25%",
+          background:
+            "radial-gradient(ellipse, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.08) 50%, transparent 70%)",
+          animationDelay: "-9s",
+          animationDuration: "11s",
+        }}
+      />
+      <div
+        className="aurora-blob absolute"
+        style={{
+          width: 350,
+          height: 350,
+          top: "10%",
+          left: "45%",
+          background:
+            "radial-gradient(ellipse, rgba(57,255,20,0.18) 0%, transparent 60%)",
+          animationDelay: "-3s",
+          animationDuration: "16s",
+        }}
+      />
+
+      {/* Mouse spotlight */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          width: 400,
+          height: 400,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(0,255,255,0.06) 0%, rgba(255,0,255,0.04) 40%, transparent 70%)",
+          transform: `translate(${mouse.x - 200}px, ${mouse.y - 200}px)`,
+          transition: "transform 0.08s linear",
+          zIndex: 1,
         }}
       />
 
@@ -118,31 +668,120 @@ function HeroSection() {
                 stiffness: 300,
                 damping: 20,
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-luxe-cyan/30 text-luxe-cyan text-xs font-semibold uppercase tracking-widest mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-luxe-cyan/40 text-luxe-cyan text-xs font-semibold uppercase tracking-widest mb-6 neon-pulse"
             >
               <Zap size={12} className="fill-luxe-cyan" />
               New Collection 2026
             </motion.div>
-            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight text-foreground mb-6">
-              DISCOVER <span className="gradient-text">PREMIUM</span>
+
+            {/* Character-split headline */}
+            <h1
+              className={`font-display text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight text-foreground mb-6${heroGlitch ? " hero-glitch" : ""}`}
+              aria-label="DISCOVER PREMIUM PRODUCTS"
+            >
+              <span>
+                {"DISCOVER".split("").map((char) => {
+                  const delay = charIdx++ * 0.03;
+                  const key = `d-${charIdx}`;
+                  return (
+                    <motion.span
+                      key={key}
+                      initial={{ opacity: 0, y: 60, rotateX: -90 }}
+                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                      transition={{
+                        delay: delay + 0.3,
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      style={{
+                        display: "inline-block",
+                        transformOrigin: "bottom",
+                      }}
+                    >
+                      {char}
+                    </motion.span>
+                  );
+                })}
+              </span>
               <br />
-              PRODUCTS
+              <span className="gradient-text">
+                {"PREMIUM".split("").map((char) => {
+                  const delay = charIdx++ * 0.03;
+                  const key = `p-${charIdx}`;
+                  return (
+                    <motion.span
+                      key={key}
+                      initial={{ opacity: 0, y: 60, rotateX: -90 }}
+                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                      transition={{
+                        delay: delay + 0.3,
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      style={{
+                        display: "inline-block",
+                        transformOrigin: "bottom",
+                      }}
+                    >
+                      {char}
+                    </motion.span>
+                  );
+                })}
+              </span>
               <br />
-              <span className="text-foreground/70 text-4xl md:text-5xl">
-                DESIGNED FOR YOU
+              <span>
+                {"PRODUCTS".split("").map((char) => {
+                  const delay = charIdx++ * 0.03;
+                  const key = `pr-${charIdx}`;
+                  return (
+                    <motion.span
+                      key={key}
+                      initial={{ opacity: 0, y: 60, rotateX: -90 }}
+                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                      transition={{
+                        delay: delay + 0.3,
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      style={{
+                        display: "inline-block",
+                        transformOrigin: "bottom",
+                      }}
+                    >
+                      {char}
+                    </motion.span>
+                  );
+                })}
               </span>
             </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-md">
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
+              className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-md"
+            >
               Curated collections of elite products crafted for those who demand
               the extraordinary. Quality meets innovation.
-            </p>
-            <div className="flex flex-wrap gap-4">
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1, duration: 0.6 }}
+              className="flex flex-wrap gap-4"
+            >
               <Link to="/products">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  ref={shopBtnRef}
+                  onMouseMove={(e) =>
+                    handleMagneticMove(e, setShopBtnMag, shopBtnRef)
+                  }
+                  onMouseLeave={() => setShopBtnMag({ x: 0, y: 0 })}
+                  animate={{ x: shopBtnMag.x, y: shopBtnMag.y }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   whileTap={{ scale: 0.92 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  className="btn-primary text-sm font-bold uppercase tracking-widest"
+                  className="btn-primary text-sm font-bold uppercase tracking-widest neon-pulse"
                   data-ocid="hero.primary_button"
                 >
                   Shop Now
@@ -150,19 +789,29 @@ function HeroSection() {
               </Link>
               <Link to="/about">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  ref={exploreBtnRef}
+                  onMouseMove={(e) =>
+                    handleMagneticMove(e, setExploreBtnMag, exploreBtnRef)
+                  }
+                  onMouseLeave={() => setExploreBtnMag({ x: 0, y: 0 })}
+                  animate={{ x: exploreBtnMag.x, y: exploreBtnMag.y }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   whileTap={{ scale: 0.92 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   className="btn-outline text-sm font-bold uppercase tracking-widest"
                   data-ocid="hero.secondary_button"
                 >
                   Explore Collection
                 </motion.button>
               </Link>
-            </div>
+            </motion.div>
 
             {/* Trust stats */}
-            <div className="flex gap-8 mt-12 pt-8 border-t border-border/30">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.4 }}
+              className="flex gap-8 mt-12 pt-8 border-t border-border/30"
+            >
               {[
                 ["50K+", "Happy Customers"],
                 ["500+", "Premium Products"],
@@ -179,67 +828,11 @@ function HeroSection() {
                   <p className="text-xs text-muted-foreground">{label}</p>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* Right - Product showcase */}
-          <motion.div
-            initial={{ opacity: 0, x: 60, rotate: -5 }}
-            animate={{ opacity: 1, x: 0, rotate: -3 }}
-            transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-            className="relative hidden lg:block animate-float"
-          >
-            <div
-              className="relative rounded-3xl overflow-hidden cyan-glow"
-              style={{
-                transform: "perspective(1000px) rotateY(-8deg) rotateX(3deg)",
-              }}
-            >
-              <img
-                src={heroImage}
-                alt="Featured Product"
-                className="w-full h-[500px] object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-              {/* Floating price tag */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1, y: [0, -4, 0] }}
-                transition={{
-                  delay: 0.8,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 15,
-                  y: {
-                    delay: 1.2,
-                    repeat: Number.POSITIVE_INFINITY,
-                    duration: 2.5,
-                    ease: "easeInOut",
-                  },
-                }}
-                className="absolute bottom-6 left-6 glass-card rounded-2xl p-4 min-w-[160px]"
-              >
-                <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                  AirMax Pro Elite
-                </p>
-                <p className="text-xl font-display font-black text-luxe-cyan mt-1">
-                  $179.99
-                </p>
-                <div className="flex items-center gap-1 mt-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      size={10}
-                      className="fill-yellow-400 text-yellow-400"
-                    />
-                  ))}
-                  <span className="text-xs text-muted-foreground ml-1">
-                    4.9
-                  </span>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
+          {/* Right - Premium 3D Product Showcase */}
+          <HeroRightPanel />
         </div>
       </div>
 
@@ -270,6 +863,7 @@ function HeroSection() {
   );
 }
 
+// ─── Categories Section ──────────────────────────────────────────────────────────
 function CategoriesSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -286,7 +880,6 @@ function CategoriesSection() {
 
   return (
     <section ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-      {/* Header */}
       <div className="flex items-end justify-between mb-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -295,20 +888,18 @@ function CategoriesSection() {
           <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
             Browse by Category
           </p>
-          <h2 className="font-display text-4xl font-black uppercase text-foreground mb-3">
-            Featured Categories
-          </h2>
-          {/* Decorative gradient line */}
+          <AnimatedWordHeading
+            text="Featured Categories"
+            className="font-display text-4xl font-black uppercase text-foreground mb-3"
+          />
           <div
             className="h-[3px] w-40 rounded-full"
             style={{
               background:
-                "linear-gradient(90deg, #a855f7 0%, #d946ef 60%, transparent 100%)",
+                "linear-gradient(90deg, #00ffff 0%, #ff00ff 60%, transparent 100%)",
             }}
           />
         </motion.div>
-
-        {/* Scroll arrows */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
@@ -321,7 +912,7 @@ function CategoriesSection() {
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.85, rotate: -5 }}
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
-            className="p-3 rounded-full glass-card border border-border/50 hover:border-purple-500/60 transition-all"
+            className="p-3 rounded-full glass-card border border-border/50 hover:border-cyan-400/60 transition-all"
             data-ocid="categories.pagination_prev"
           >
             <ChevronLeft size={18} />
@@ -332,7 +923,7 @@ function CategoriesSection() {
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.85, rotate: 5 }}
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
-            className="p-3 rounded-full glass-card border border-border/50 hover:border-purple-500/60 transition-all"
+            className="p-3 rounded-full glass-card border border-border/50 hover:border-cyan-400/60 transition-all"
             data-ocid="categories.pagination_next"
           >
             <ChevronRight size={18} />
@@ -340,11 +931,19 @@ function CategoriesSection() {
         </motion.div>
       </div>
 
-      {/* Carousel */}
       <div
         ref={scrollRef}
-        className="flex gap-5 overflow-x-auto pb-4"
-        style={{ scrollbarWidth: "none" }}
+        className="flex gap-5 overflow-x-auto scrollbar-hide"
+        style={{
+          scrollbarWidth: "none",
+          paddingTop: "20px",
+          paddingBottom: "20px",
+          paddingLeft: "12px",
+          paddingRight: "12px",
+          marginTop: "-20px",
+          marginLeft: "-12px",
+          marginRight: "-12px",
+        }}
       >
         {CATEGORY_LIST.map((cat, i) => (
           <motion.div
@@ -360,70 +959,50 @@ function CategoriesSection() {
             className="flex-shrink-0 w-[calc(25%-15px)] min-w-[200px]"
           >
             <Link to="/products" data-ocid={`categories.item.${i + 1}`}>
-              <motion.div
-                whileHover={{ scale: 1.03, y: -6 }}
-                transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                className="group relative rounded-2xl overflow-hidden cursor-pointer"
-                style={{ aspectRatio: "2/3" }}
-              >
-                {/* Background image */}
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
-                />
-
-                {/* Base gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                {/* Purple shimmer on hover */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(168,85,247,0.25) 0%, rgba(217,70,239,0.15) 50%, transparent 100%)",
-                  }}
-                />
-
-                {/* Animated shimmer sweep */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-                  style={{
-                    background:
-                      "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%)",
-                    transform: "translateX(-100%)",
-                    animation: "none",
-                  }}
-                />
-
-                {/* Glowing border */}
-                <div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
-                  style={{
-                    boxShadow:
-                      "inset 0 0 0 1.5px rgba(168,85,247,0.7), 0 0 30px rgba(168,85,247,0.35)",
-                  }}
-                />
-
-                {/* Text block */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-center text-center">
-                  <p className="font-display font-black text-white uppercase tracking-[0.15em] text-base leading-tight">
-                    {cat.name}
-                  </p>
-                  {/* Purple accent underline */}
+              <TiltCard>
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -6 }}
+                  transition={{ type: "spring", stiffness: 800, damping: 60 }}
+                  className="group relative rounded-2xl overflow-hidden cursor-pointer"
+                  style={{ aspectRatio: "2/3" }}
+                >
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                   <div
-                    className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{
-                      background: "linear-gradient(90deg, #a855f7, #d946ef)",
+                      background:
+                        "linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(255,0,255,0.12) 50%, transparent 100%)",
                     }}
                   />
-                  {/* Shop Now — fades in on hover */}
-                  <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-purple-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                    Shop Now →
-                  </p>
-                </div>
-              </motion.div>
+                  <div
+                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+                    style={{
+                      boxShadow:
+                        "inset 0 0 0 1.5px rgba(0,255,255,0.7), 0 0 30px rgba(0,255,255,0.35)",
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-center text-center">
+                    <p className="font-display font-black text-white uppercase tracking-[0.15em] text-base leading-tight">
+                      {cat.name}
+                    </p>
+                    <div
+                      className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
+                      style={{
+                        background: "linear-gradient(90deg, #00ffff, #ff00ff)",
+                      }}
+                    />
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-purple-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      Shop Now →
+                    </p>
+                  </div>
+                </motion.div>
+              </TiltCard>
             </Link>
           </motion.div>
         ))}
@@ -432,6 +1011,38 @@ function CategoriesSection() {
   );
 }
 
+// ─── Tilt Card wrapper ────────────────────────────────────────────────────────────
+function TiltCard({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    ref.current.style.transform = `perspective(800px) rotateY(${x * 16}deg) rotateX(${-y * 16}deg)`;
+    ref.current.style.transition = "transform 0.1s ease";
+  };
+
+  const handleMouseLeave = () => {
+    if (!ref.current) return;
+    ref.current.style.transform =
+      "perspective(800px) rotateY(0deg) rotateX(0deg)";
+    ref.current.style.transition = "transform 0.4s ease";
+  };
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Trending Section ──────────────────────────────────────────────────────────────
 function TrendingSection({ products }: { products: typeof mockProducts }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -440,9 +1051,8 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
-    const amount = 320;
     scrollRef.current.scrollBy({
-      left: dir === "right" ? amount : -amount,
+      left: dir === "right" ? 320 : -320,
       behavior: "smooth",
     });
   };
@@ -451,11 +1061,8 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
     <section
       ref={ref}
       className="py-20 relative overflow-hidden"
-      style={{
-        background: "linear-gradient(180deg, #06000f 0%, #0f0530 100%)",
-      }}
+      style={{ background: "var(--section-alt-bg)" }}
     >
-      {/* Floating orbs */}
       <div
         className="orb-purple"
         style={{
@@ -485,9 +1092,10 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
             <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
               Hot Right Now
             </p>
-            <h2 className="font-display text-4xl font-black uppercase text-foreground">
-              Trending Now
-            </h2>
+            <AnimatedWordHeading
+              text="Trending Now"
+              className="font-display text-4xl font-black uppercase text-foreground"
+            />
           </motion.div>
           <div className="flex gap-2">
             <motion.button
@@ -517,7 +1125,11 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
         <div
           ref={scrollRef}
           className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide"
-          style={{ scrollbarWidth: "none" }}
+          style={{
+            scrollbarWidth: "none",
+            paddingTop: "12px",
+            marginTop: "-12px",
+          }}
         >
           {trending.map((product, i) => (
             <div key={product.id} className="flex-shrink-0 w-72">
@@ -530,28 +1142,29 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
   );
 }
 
+// ─── Flash Sale Section ──────────────────────────────────────────────────────────
 function FlashSaleSection({ products }: { products: typeof mockProducts }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
   const saleProducts = products.filter((p) => p.isFlashSale);
   const { addItem } = useCart();
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
     <section ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
       <div
-        className="rounded-3xl p-8 md:p-12 relative overflow-hidden"
+        className="rounded-3xl p-8 md:p-12 relative"
         style={{
-          background:
-            "linear-gradient(135deg, #080015 0%, #1a0845 40%, #2d0a6e 60%, #080015 100%)",
-          border: "1px solid rgba(168, 85, 247, 0.2)",
+          background: "var(--flash-sale-bg)",
+          border: "1px solid rgba(0, 255, 255, 0.2)",
+          overflow: "visible",
         }}
       >
-        {/* Glow */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent, #a855f7, transparent)",
+              "linear-gradient(90deg, transparent, #00ffff, transparent)",
           }}
         />
 
@@ -566,87 +1179,214 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
                 Limited Time Offer
               </p>
             </div>
-            <h2 className="font-display text-4xl font-black uppercase text-foreground">
-              Flash Sale
-            </h2>
+            {/* ClipPath reveal heading */}
+            <motion.div
+              initial={{ clipPath: "inset(0 100% 0 0)" }}
+              animate={inView ? { clipPath: "inset(0 0% 0 0)" } : {}}
+              transition={{
+                duration: 0.8,
+                ease: [0.22, 1, 0.36, 1],
+                delay: 0.1,
+              }}
+            >
+              <h2 className="font-display text-4xl font-black uppercase text-foreground">
+                Flash Sale
+              </h2>
+            </motion.div>
             <p className="text-muted-foreground mt-1">Deals end in:</p>
           </motion.div>
           <CountdownTimer />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {saleProducts.map((product, i) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              whileHover={{ scale: 1.03, y: -4 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 18,
-                delay: i * 0.1,
-              }}
-              className="group rounded-2xl overflow-hidden border border-border/50 bg-white/5 hover:border-luxe-cyan/40"
-              data-ocid={`flashsale.item.${i + 1}`}
-            >
-              <div className="aspect-square overflow-hidden">
-                <img
-                  src={getProductImage(product)}
-                  alt={product.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-              </div>
-              <div className="p-4">
-                <p className="text-xs font-semibold text-foreground line-clamp-1">
-                  {product.title}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="font-bold text-luxe-cyan">
-                    ${product.price.toFixed(2)}
-                  </span>
-                  <span className="text-xs text-muted-foreground line-through">
-                    ${product.originalPrice.toFixed(2)}
-                  </span>
-                  <span className="ml-auto text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full font-bold">
-                    -
-                    {Math.round(
-                      ((product.originalPrice - product.price) /
-                        product.originalPrice) *
-                        100,
-                    )}
-                    %
-                  </span>
-                </div>
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.88 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                  onClick={() =>
-                    addItem({
-                      productId: product.id,
-                      title: product.title,
-                      price: product.price,
-                      image: getProductImage(product),
-                      size: product.sizes[0] ?? "One Size",
-                      color: product.colors[0] ?? "#000",
-                    })
-                  }
-                  className="w-full mt-3 py-2 rounded-xl bg-luxe-cyan/10 border border-luxe-cyan/30 text-luxe-cyan text-xs font-bold hover:bg-luxe-cyan hover:text-white transition-all duration-300"
-                  data-ocid={`flashsale.primary_button.${i + 1}`}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          style={{ overflow: "visible" }}
+        >
+          {saleProducts.map((product, i) => {
+            const isHovered = hoveredId === product.id;
+            const discount = Math.round(
+              ((product.originalPrice - product.price) /
+                product.originalPrice) *
+                100,
+            );
+
+            return (
+              <TiltCard key={product.id}>
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, y: 30, scale: 1 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: {
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 20,
+                        delay: i * 0.1,
+                      },
+                    },
+                    hover: {
+                      scale: 1.07,
+                      y: -12,
+                      zIndex: 20,
+                      transition: {
+                        type: "spring",
+                        stiffness: 700,
+                        damping: 28,
+                        mass: 0.5,
+                      },
+                    },
+                  }}
+                  initial="hidden"
+                  animate={inView ? "visible" : "hidden"}
+                  whileHover="hover"
+                  onHoverStart={() => setHoveredId(product.id)}
+                  onHoverEnd={() => setHoveredId(null)}
+                  className="group rounded-2xl overflow-hidden border border-border/50 bg-white/5 cursor-pointer"
+                  style={{
+                    position: "relative",
+                    boxShadow: isHovered
+                      ? "0 0 40px rgba(168,85,247,0.7), 0 0 80px rgba(217,70,239,0.4), 0 20px 60px rgba(0,0,0,0.6)"
+                      : "0 4px 20px rgba(0,0,0,0.3)",
+                    borderColor: isHovered
+                      ? "rgba(168,85,247,0.8)"
+                      : "rgba(255,255,255,0.08)",
+                    transition: "box-shadow 0.3s ease, border-color 0.3s ease",
+                  }}
+                  data-ocid={`flashsale.item.${i + 1}`}
                 >
-                  Add to Cart
-                </motion.button>
-              </div>
-            </motion.div>
-          ))}
+                  <div className="aspect-square overflow-hidden relative">
+                    <motion.img
+                      src={getProductImage(product)}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                      animate={{ scale: isHovered ? 1.12 : 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 22,
+                      }}
+                      loading="lazy"
+                    />
+                    <motion.div
+                      className="absolute inset-0 pointer-events-none"
+                      initial={{ x: "-100%", opacity: 0 }}
+                      animate={
+                        isHovered
+                          ? { x: "150%", opacity: 1 }
+                          : { x: "-100%", opacity: 0 }
+                      }
+                      transition={{
+                        duration: 0.65,
+                        ease: "easeInOut",
+                        repeat: isHovered ? Number.POSITIVE_INFINITY : 0,
+                        repeatDelay: 0.8,
+                      }}
+                      style={{
+                        background:
+                          "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.18) 50%, transparent 80%)",
+                        width: "60%",
+                        top: 0,
+                        bottom: 0,
+                      }}
+                    />
+                    <motion.div
+                      className="absolute inset-0 pointer-events-none"
+                      animate={{ opacity: isHovered ? 1 : 0 }}
+                      transition={{ duration: 0.3 }}
+                      style={{
+                        background:
+                          "linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(217,70,239,0.15) 100%)",
+                      }}
+                    />
+                    <motion.span
+                      className="absolute top-2 right-2 text-xs text-white px-2 py-1 rounded-full font-black"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)",
+                        boxShadow:
+                          "0 0 12px rgba(0,255,255,0.5), 0 0 24px rgba(255,0,255,0.3)",
+                      }}
+                      animate={
+                        isHovered
+                          ? {
+                              scale: [1, 1.2, 0.95, 1.1, 1],
+                              rotate: [-2, 3, -2, 2, 0],
+                            }
+                          : { scale: 1, rotate: 0 }
+                      }
+                      transition={{
+                        duration: 0.5,
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 10,
+                      }}
+                    >
+                      -{discount}%
+                    </motion.span>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-xs font-semibold text-foreground line-clamp-1">
+                      {product.title}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="font-bold text-luxe-cyan">
+                        ${product.price.toFixed(2)}
+                      </span>
+                      <span className="text-xs text-muted-foreground line-through">
+                        ${product.originalPrice.toFixed(2)}
+                      </span>
+                    </div>
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.88 }}
+                      animate={isHovered ? { scale: 1.04 } : { scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 15,
+                      }}
+                      onClick={() =>
+                        addItem({
+                          productId: product.id,
+                          title: product.title,
+                          price: product.price,
+                          image: getProductImage(product),
+                          size: product.sizes[0] ?? "One Size",
+                          color: product.colors[0] ?? "#000",
+                        })
+                      }
+                      className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all duration-300"
+                      style={{
+                        background: isHovered
+                          ? "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)"
+                          : "rgba(0,255,255,0.08)",
+                        border: isHovered
+                          ? "1px solid rgba(0,255,255,0.9)"
+                          : "1px solid rgba(0,255,255,0.3)",
+                        color: isHovered ? "#fff" : "#00ffff",
+                        boxShadow: isHovered
+                          ? "0 0 20px rgba(0,255,255,0.6), 0 0 40px rgba(255,0,255,0.3)"
+                          : "none",
+                      }}
+                      data-ocid={`flashsale.primary_button.${i + 1}`}
+                    >
+                      Add to Cart
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </TiltCard>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
+// ─── Testimonials Section ──────────────────────────────────────────────────────────
 function TestimonialsSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -655,11 +1395,8 @@ function TestimonialsSection() {
     <section
       ref={ref}
       className="py-20 relative overflow-hidden"
-      style={{
-        background: "linear-gradient(180deg, #06000f 0%, #0f0530 100%)",
-      }}
+      style={{ background: "var(--section-alt-bg)" }}
     >
-      {/* Floating orbs */}
       <div
         className="orb-purple"
         style={{
@@ -689,9 +1426,10 @@ function TestimonialsSection() {
           <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
             What People Say
           </p>
-          <h2 className="font-display text-4xl font-black uppercase gradient-text-vivid">
-            Customer Stories
-          </h2>
+          <AnimatedWordHeading
+            text="Customer Stories"
+            className="font-display text-4xl font-black uppercase gradient-text-vivid"
+          />
         </motion.div>
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (
@@ -706,7 +1444,7 @@ function TestimonialsSection() {
                 damping: 20,
                 delay: i * 0.1,
               }}
-              className="glass-card rounded-2xl p-6"
+              className="glass-card rounded-2xl p-6 testimonial-shimmer-card"
               data-ocid={`testimonials.item.${i + 1}`}
             >
               <div className="flex gap-1 mb-4">
@@ -740,6 +1478,7 @@ function TestimonialsSection() {
   );
 }
 
+// ─── Brands Section ──────────────────────────────────────────────────────────────
 function BrandsSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -784,13 +1523,16 @@ function BrandsSection() {
   );
 }
 
+// ─── Page Root ───────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { data: backendProducts } = useAllProducts();
   const products = backendProducts?.length ? backendProducts : mockProducts;
 
   return (
     <div>
+      <ScrollProgressBar />
       <HeroSection />
+      <MarqueeStrip />
       <CategoriesSection />
       <TrendingSection products={products} />
       <FlashSaleSection products={products} />

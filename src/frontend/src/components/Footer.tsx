@@ -71,17 +71,24 @@ export default function Footer() {
     <footer
       className="border-t mt-20"
       style={{
-        background: "linear-gradient(180deg, #06000f 0%, #020008 100%)",
-        borderColor: "rgba(147, 51, 234, 0.5)",
+        background: "var(--footer-bg)",
+        borderColor: "rgba(0, 255, 255, 0.3)",
         borderTopWidth: "2px",
-        boxShadow: "0 -2px 40px rgba(147, 51, 234, 0.2)",
+        boxShadow:
+          "0 -2px 40px rgba(0, 255, 255, 0.12), 0 -1px 0 rgba(255, 0, 255, 0.08)",
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           <div className="lg:col-span-2">
             <Link to="/" className="inline-block mb-4">
-              <span className="font-display text-3xl font-black tracking-wider">
+              <span
+                className="font-display text-3xl font-black tracking-wider neon-pulse"
+                style={{
+                  textShadow:
+                    "0 0 10px rgba(0,255,255,0.5), 0 0 20px rgba(0,255,255,0.25)",
+                }}
+              >
                 LU<span className="gradient-text">XE</span>
               </span>
             </Link>
@@ -95,12 +102,41 @@ export default function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-border/50 text-foreground placeholder:text-muted-foreground/50 text-sm outline-none focus:border-luxe-cyan/50 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground/50 text-sm outline-none transition-all"
+                style={{
+                  borderColor: "rgba(0,255,255,0.2)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(0,255,255,0.6)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 10px rgba(0,255,255,0.2)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(0,255,255,0.2)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 data-ocid="footer.input"
               />
               <button
                 type="submit"
-                className="p-2.5 rounded-xl bg-luxe-cyan/20 text-luxe-cyan border border-luxe-cyan/30 hover:bg-luxe-cyan/30 transition-all"
+                className="p-2.5 rounded-xl border transition-all"
+                style={{
+                  background: "rgba(0,255,255,0.12)",
+                  borderColor: "rgba(0,255,255,0.35)",
+                  color: "#00ffff",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    "rgba(0,255,255,0.25)";
+                  (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                    "0 0 12px rgba(0,255,255,0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    "rgba(0,255,255,0.12)";
+                  (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                    "none";
+                }}
                 data-ocid="footer.submit_button"
               >
                 <Send size={16} />
@@ -110,7 +146,13 @@ export default function Footer() {
 
           {footerLinks.map((col) => (
             <div key={col.title}>
-              <h4 className="font-display font-bold text-sm uppercase tracking-widest text-foreground mb-4">
+              <h4
+                className="font-display font-bold text-sm uppercase tracking-widest mb-4"
+                style={{
+                  color: "#00ffff",
+                  textShadow: "0 0 8px rgba(0,255,255,0.4)",
+                }}
+              >
                 {col.title}
               </h4>
               <ul className="space-y-2.5">
@@ -119,6 +161,20 @@ export default function Footer() {
                     <Link
                       to={link.to}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      style={{ textDecoration: "none" }}
+                      onMouseEnter={(e) => {
+                        (
+                          e.currentTarget as HTMLAnchorElement
+                        ).style.textShadow = "0 0 8px rgba(0,255,255,0.6)";
+                        (e.currentTarget as HTMLAnchorElement).style.color =
+                          "#00ffff";
+                      }}
+                      onMouseLeave={(e) => {
+                        (
+                          e.currentTarget as HTMLAnchorElement
+                        ).style.textShadow = "none";
+                        (e.currentTarget as HTMLAnchorElement).style.color = "";
+                      }}
                       data-ocid="footer.link"
                     >
                       {link.label}
@@ -130,14 +186,21 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-border/30 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div
+          className="border-t mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+          style={{ borderColor: "rgba(0,255,255,0.15)" }}
+        >
           <p className="text-sm text-muted-foreground">
             © {year}. Built with ❤️ using{" "}
             <a
               href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(hostname)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-luxe-cyan hover:underline"
+              className="hover:underline"
+              style={{
+                color: "#00ffff",
+                textShadow: "0 0 6px rgba(0,255,255,0.5)",
+              }}
             >
               caffeine.ai
             </a>
@@ -151,7 +214,22 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-2 rounded-full text-muted-foreground hover:text-luxe-cyan hover:bg-luxe-cyan/10 transition-all"
+                className="p-2 rounded-full text-muted-foreground transition-all"
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color =
+                    "#00ffff";
+                  (e.currentTarget as HTMLAnchorElement).style.background =
+                    "rgba(0,255,255,0.08)";
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow =
+                    "0 0 10px rgba(0,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = "";
+                  (e.currentTarget as HTMLAnchorElement).style.background =
+                    "transparent";
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow =
+                    "none";
+                }}
                 aria-label={label}
               >
                 <Icon size={16} />
