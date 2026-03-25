@@ -9,6 +9,7 @@ import {
 import { ThemeProvider } from "next-themes";
 import CartDrawer from "./components/CartDrawer";
 import Footer from "./components/Footer";
+import GlitchCursor from "./components/GlitchCursor";
 import Navbar from "./components/Navbar";
 import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
@@ -26,6 +27,7 @@ import WishlistPage from "./pages/WishlistPage";
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <GlitchCursor />
       <Navbar />
       <CartDrawer />
       <main>
