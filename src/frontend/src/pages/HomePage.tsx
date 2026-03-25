@@ -1194,6 +1194,8 @@ function TrendingCard({
   isWishlisted: boolean;
   onWishlistToggle: () => void;
 }) {
+  const { theme } = useTheme();
+  const isDark = theme !== "light";
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const [hovered, setHovered] = useState(false);
@@ -1212,12 +1214,19 @@ function TrendingCard({
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       whileHover={{ scale: 1.03 }}
-      className="group rounded-2xl overflow-hidden border bg-white/5 cursor-pointer"
+      className="group rounded-2xl overflow-hidden border cursor-pointer"
       style={{
-        borderColor: hovered ? "rgba(0,255,255,0.6)" : "rgba(255,255,255,0.1)",
+        background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)",
+        borderColor: hovered
+          ? "rgba(0,255,255,0.6)"
+          : isDark
+            ? "rgba(255,255,255,0.1)"
+            : "rgba(0,0,0,0.1)",
         boxShadow: hovered
           ? "0 0 0 1.5px #00ffff, 0 0 24px rgba(0,255,255,0.3)"
-          : "none",
+          : isDark
+            ? "none"
+            : "0 2px 12px rgba(0,0,0,0.08)",
         transition: "box-shadow 0.3s ease, border-color 0.3s ease",
       }}
       data-ocid={`trending.item.${index + 1}`}
@@ -1273,7 +1282,10 @@ function TrendingCard({
           className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
           style={{ background: "linear-gradient(90deg, #00ffff, #ff00ff)" }}
         />
-        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-purple-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+        <p
+          className="mt-1 text-xs font-semibold uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+          style={{ color: isDark ? "#d8b4fe" : "#7c3aed" }}
+        >
           Shop Now →
         </p>
         <div className="flex items-center gap-2 mt-2">
@@ -1292,9 +1304,12 @@ function TrendingCard({
           onClick={onAddToCart}
           className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
           style={{
-            background: "rgba(0,255,255,0.08)",
-            border: "1px solid rgba(0,255,255,0.3)",
-            color: "#00ffff",
+            background: isDark
+              ? "rgba(0,255,255,0.08)"
+              : "linear-gradient(135deg, #00cccc 0%, #a855f7 100%)",
+            border: isDark ? "1px solid rgba(0,255,255,0.3)" : "none",
+            color: isDark ? "#00ffff" : "#fff",
+            boxShadow: isDark ? "none" : "0 2px 12px rgba(0,200,200,0.3)",
           }}
           data-ocid={`trending.submit_button.${index + 1}`}
         >
