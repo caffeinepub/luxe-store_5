@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ChevronLeft, ChevronRight, Star, Zap } from "lucide-react";
+import {
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  ShoppingCart,
+  Star,
+  Zap,
+} from "lucide-react";
 import {
   AnimatePresence,
   motion,
@@ -9,8 +17,8 @@ import {
 } from "motion/react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
-import ProductCard from "../components/ProductCard";
 import { useCart } from "../contexts/CartContext";
+import { useWishlist } from "../contexts/WishlistContext";
 import { useAllProducts } from "../hooks/useQueries";
 import { CATEGORY_LIST, getProductImage } from "../lib/imageUtils";
 import { mockProducts, testimonials } from "../lib/mockData";
@@ -1040,6 +1048,9 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
   const inView = useInView(ref, { once: true, margin: "-100px" });
   const scrollRef = useRef<HTMLDivElement>(null);
   const trending = products.filter((p) => p.isTrending);
+  const { addItem } = useCart();
+  const { toggle, has } = useWishlist();
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -1126,11 +1137,222 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
               paddingRight: "20px",
             }}
           >
-            {trending.map((product, i) => (
-              <div key={product.id} className="flex-shrink-0 w-72">
-                <ProductCard product={product} index={i} />
-              </div>
-            ))}
+            {trending.map((product, i) => {
+              const isHovered = hoveredId === product.id;
+              return (
+                <TiltCard key={product.id}>
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, y: 30, scale: 1 },
+                      visible: {
+                        opacity: 1,
+                        y: 0,
+                        scale: 1,
+                        transition: {
+                          type: "spring",
+                          stiffness: 350,
+                          damping: 20,
+                          delay: i * 0.1,
+                        },
+                      },
+                      hover: {
+                        scale: 1.07,
+                        y: -12,
+                        zIndex: 20,
+                        transition: {
+                          type: "spring",
+                          stiffness: 700,
+                          damping: 28,
+                          mass: 0.5,
+                        },
+                      },
+                    }}
+                    initial="hidden"
+                    animate={inView ? "visible" : "hidden"}
+                    whileHover="hover"
+                    onHoverStart={() => setHoveredId(product.id)}
+                    onHoverEnd={() => setHoveredId(null)}
+                    className="flex-shrink-0 w-72 rounded-2xl overflow-hidden border border-border/50 bg-white/5 cursor-pointer"
+                    style={{
+                      position: "relative",
+                      boxShadow: isHovered
+                        ? "0 0 40px rgba(168,85,247,0.7), 0 0 80px rgba(217,70,239,0.4), 0 20px 60px rgba(0,0,0,0.6)"
+                        : "0 2px 10px rgba(0,0,0,0.15)",
+                      borderColor: isHovered
+                        ? "rgba(168,85,247,0.8)"
+                        : "rgba(255,255,255,0.08)",
+                      transition:
+                        "box-shadow 0.3s ease, border-color 0.3s ease",
+                    }}
+                    data-ocid={`trending.item.${i + 1}`}
+                  >
+                    {/* Image area */}
+                    <div className="aspect-square overflow-hidden relative">
+                      <motion.img
+                        src={getProductImage(product)}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                        animate={{ scale: isHovered ? 1.12 : 1 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 22,
+                        }}
+                        loading="lazy"
+                      />
+                      {/* Shimmer sweep */}
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none"
+                        initial={{ x: "-100%", opacity: 0 }}
+                        animate={
+                          isHovered
+                            ? { x: "150%", opacity: 1 }
+                            : { x: "-100%", opacity: 0 }
+                        }
+                        transition={{
+                          duration: 0.65,
+                          ease: "easeInOut",
+                          repeat: isHovered ? Number.POSITIVE_INFINITY : 0,
+                          repeatDelay: 0.8,
+                        }}
+                        style={{
+                          background:
+                            "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.18) 50%, transparent 80%)",
+                          width: "60%",
+                          top: 0,
+                          bottom: 0,
+                        }}
+                      />
+                      {/* Purple overlay */}
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none"
+                        animate={{ opacity: isHovered ? 1 : 0 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          background:
+                            "linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(217,70,239,0.15) 100%)",
+                        }}
+                      />
+                      {/* Trending badge */}
+                      <span
+                        className="absolute top-2 left-2 text-xs text-white px-2 py-1 rounded-full font-bold"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #a855f7 0%, #d946ef 100%)",
+                          boxShadow: "0 0 10px rgba(168,85,247,0.5)",
+                        }}
+                      >
+                        Trending
+                      </span>
+                      {/* Wishlist heart */}
+                      <button
+                        type="button"
+                        onClick={() => toggle(product.id)}
+                        className="absolute top-2 right-2 p-1.5 rounded-full"
+                        style={{ background: "rgba(0,0,0,0.4)" }}
+                        data-ocid={`trending.toggle.${i + 1}`}
+                      >
+                        <Heart
+                          size={14}
+                          className={
+                            has(product.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-white"
+                          }
+                        />
+                      </button>
+                      {/* Add to Cart button - instant appear */}
+                      <motion.button
+                        type="button"
+                        animate={{
+                          y: isHovered ? 0 : 20,
+                          opacity: isHovered ? 1 : 0,
+                        }}
+                        transition={{ duration: 0 }}
+                        onClick={() =>
+                          addItem({
+                            productId: product.id,
+                            title: product.title,
+                            price: product.price,
+                            image: getProductImage(product),
+                            size: product.sizes[0] ?? "One Size",
+                            color: product.colors[0] ?? "#000",
+                          })
+                        }
+                        className="absolute bottom-3 left-3 right-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #a855f7 0%, #d946ef 100%)",
+                          color: "#fff",
+                          boxShadow:
+                            "0 0 20px rgba(168,85,247,0.6), 0 0 40px rgba(217,70,239,0.3)",
+                          border: "1px solid rgba(168,85,247,0.9)",
+                        }}
+                        data-ocid={`trending.primary_button.${i + 1}`}
+                      >
+                        <ShoppingCart size={12} />
+                        Add to Cart
+                      </motion.button>
+                    </div>
+                    {/* Card body */}
+                    <div className="p-4">
+                      <p className="text-xs text-luxe-cyan font-semibold uppercase tracking-wider mb-1">
+                        {product.category}
+                      </p>
+                      <p className="text-sm font-bold text-foreground line-clamp-1">
+                        {product.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="font-bold text-luxe-cyan">
+                          ${product.price.toFixed(2)}
+                        </span>
+                        {product.originalPrice > product.price && (
+                          <span className="text-xs text-muted-foreground line-through">
+                            ${product.originalPrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.88 }}
+                        animate={isHovered ? { scale: 1.04 } : { scale: 1 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 15,
+                        }}
+                        onClick={() =>
+                          addItem({
+                            productId: product.id,
+                            title: product.title,
+                            price: product.price,
+                            image: getProductImage(product),
+                            size: product.sizes[0] ?? "One Size",
+                            color: product.colors[0] ?? "#000",
+                          })
+                        }
+                        className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all duration-300"
+                        style={{
+                          background: isHovered
+                            ? "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)"
+                            : "rgba(0,255,255,0.08)",
+                          border: isHovered
+                            ? "1px solid rgba(0,255,255,0.9)"
+                            : "1px solid rgba(0,255,255,0.3)",
+                          color: isHovered ? "#fff" : "#00ffff",
+                          boxShadow: isHovered
+                            ? "0 0 20px rgba(0,255,255,0.6), 0 0 40px rgba(255,0,255,0.3)"
+                            : "none",
+                        }}
+                        data-ocid={`trending.submit_button.${i + 1}`}
+                      >
+                        Add to Cart
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </TiltCard>
+              );
+            })}
           </div>
         </div>
       </div>
