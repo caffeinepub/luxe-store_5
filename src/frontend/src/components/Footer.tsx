@@ -15,7 +15,6 @@ const SOCIAL_LINKS = [
 export default function Footer() {
   const [email, setEmail] = useState("");
   const year = new Date().getFullYear();
-  const hostname = window.location.hostname;
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,19 +190,16 @@ export default function Footer() {
           style={{ borderColor: "rgba(0,255,255,0.15)" }}
         >
           <p className="text-sm text-muted-foreground">
-            © {year}. Built with ❤️ using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
+            © {year}. Created by{" "}
+            <span
               style={{
                 color: "#00ffff",
                 textShadow: "0 0 6px rgba(0,255,255,0.5)",
               }}
             >
-              caffeine.ai
-            </a>
+              Devang
+            </span>{" "}
+            ❤️
           </p>
           <div className="flex items-center gap-4">
             {SOCIAL_LINKS.map(({ Icon, label, href }) => (

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 
-const TRAIL_LENGTH = 12;
+const TRAIL_LENGTH = 14;
+// Skip the first N orbs so no light appears directly under the arrow tip
+const TRAIL_START = 3;
 
 export default function GlitchCursor() {
   const mousePos = useRef({ x: -200, y: -200 });
@@ -37,13 +39,14 @@ export default function GlitchCursor() {
       const mouse = mousePos.current;
       const pts = trailPos.current;
 
-      pts[0].x = lerp(pts[0].x, mouse.x, 0.35);
-      pts[0].y = lerp(pts[0].y, mouse.y, 0.35);
+      // Faster lerp so trail closely follows the cursor
+      pts[0].x = lerp(pts[0].x, mouse.x, 0.45);
+      pts[0].y = lerp(pts[0].y, mouse.y, 0.45);
 
       for (let i = 1; i < TRAIL_LENGTH; i++) {
-        const factor = 0.28 - i * 0.01;
-        pts[i].x = lerp(pts[i].x, pts[i - 1].x, Math.max(factor, 0.08));
-        pts[i].y = lerp(pts[i].y, pts[i - 1].y, Math.max(factor, 0.08));
+        const factor = 0.42 - i * 0.02;
+        pts[i].x = lerp(pts[i].x, pts[i - 1].x, Math.max(factor, 0.15));
+        pts[i].y = lerp(pts[i].y, pts[i - 1].y, Math.max(factor, 0.15));
       }
 
       if (cursorRef.current) {
@@ -53,24 +56,26 @@ export default function GlitchCursor() {
 
       // --- Glitch scheduler ---
       if (now >= nextGlitchTime.current) {
-        // Schedule next glitch burst in 150–300ms
         nextGlitchTime.current = now + 150 + Math.random() * 150;
 
-        // Pick 2–3 random indices to glitch
         const count = 2 + Math.floor(Math.random() * 2);
-        const duration = 60 + Math.random() * 40; // 60–100ms
+        const duration = 60 + Math.random() * 40;
         const until = now + duration;
         const used = new Set<number>();
 
         for (let g = 0; g < count; g++) {
-          let idx = Math.floor(Math.random() * TRAIL_LENGTH);
-          while (used.has(idx)) idx = (idx + 1) % TRAIL_LENGTH;
+          let idx =
+            TRAIL_START +
+            Math.floor(Math.random() * (TRAIL_LENGTH - TRAIL_START));
+          while (used.has(idx))
+            idx =
+              TRAIL_START +
+              ((idx - TRAIL_START + 1) % (TRAIL_LENGTH - TRAIL_START));
           used.add(idx);
 
           const isScanline = g === 0 && Math.random() > 0.5;
           if (isScanline) {
-            // Scanline tear: one mid-trail orb gets horizontal stretch
-            const midIdx = 4 + Math.floor(Math.random() * 4);
+            const midIdx = TRAIL_START + 2 + Math.floor(Math.random() * 4);
             glitchState.current.set(midIdx, {
               offsetX: (Math.random() - 0.5) * 8,
               color: "#00ffff",
@@ -79,7 +84,6 @@ export default function GlitchCursor() {
               until,
             });
           } else {
-            // Normal glitch: offset + color flash + opacity spike
             const flashColor = Math.random() > 0.5 ? "#ff00ff" : "#00ffff";
             glitchState.current.set(idx, {
               offsetX: (Math.random() - 0.5) * 8,
@@ -108,13 +112,18 @@ export default function GlitchCursor() {
 
         for (let i = 0; i < TRAIL_LENGTH; i++) {
           const orb = overlay.children[i] as HTMLElement;
+
+          // Hide orbs close to the arrow tip
+          if (i < TRAIL_START) {
+            orb.style.opacity = "0";
+            continue;
+          }
+
           const ratio = 1 - i / TRAIL_LENGTH;
           const pt = pts[i];
 
-          // Short and thin: max 6px at head, 1px at tail
           const size = 1 + 5 * ratio;
 
-          // Color: cyan → magenta → purple
           let color: string;
           if (ratio > 0.6) {
             const t = (ratio - 0.6) / 0.4;
@@ -135,7 +144,6 @@ export default function GlitchCursor() {
           const glowSize = size * 0.8;
           let transformExtra = "";
 
-          // Apply glitch state if active
           const gs = glitchState.current.get(i);
           if (gs) {
             color = gs.color;
@@ -184,7 +192,7 @@ export default function GlitchCursor() {
         }}
       />
 
-      {/* Standard OS-style arrow cursor with minimal glow */}
+      {/* Standard OS-style arrow cursor — no glow on the arrow itself */}
       <div
         ref={cursorRef}
         style={{
@@ -203,10 +211,7 @@ export default function GlitchCursor() {
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          style={{
-            display: "block",
-            filter: "drop-shadow(0 0 1.5px rgba(0,255,255,0.4))",
-          }}
+          style={{ display: "block" }}
         >
           <path
             d="M2 2 L2 18 L6.5 13.5 L10 20 L12.5 19 L9 12.5 L16 12.5 Z"
