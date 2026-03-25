@@ -260,6 +260,14 @@ function HeroRightPanel() {
   const { theme } = useTheme();
   const isDark = theme !== "light";
 
+  // Preload all shoe images on mount so transitions are instant
+  useEffect(() => {
+    for (const src of SHOE_IMAGES) {
+      const img = new Image();
+      img.src = src;
+    }
+  }, []);
+
   // Auto-rotate shoes every 3 seconds with glitch effect
   useEffect(() => {
     const interval = setInterval(() => {
