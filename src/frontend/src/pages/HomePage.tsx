@@ -7,6 +7,7 @@ import {
   useScroll,
   useSpring,
 } from "motion/react";
+import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../contexts/CartContext";
@@ -178,31 +179,28 @@ function CountdownTimer() {
 
 // ─── Hero Right Panel ──────────────────────────────────────────────────────────
 const SHOE_IMAGES = [
-  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=90",
-  "https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=90",
-  "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=90",
+  "/assets/generated/hero-shoe-1.dim_600x600.jpg",
+  "/assets/generated/hero-shoe-2.dim_600x600.jpg",
+  "/assets/generated/hero-shoe-3.dim_600x600.jpg",
 ];
 
 const MINI_CARDS = [
   {
-    image:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&q=80",
+    image: "/assets/generated/product-watch.dim_600x600.jpg",
     label: "Watch Pro",
     price: "$249",
     style: { top: "5%", right: "0%" },
     delay: 0,
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=100&q=80",
+    image: "/assets/generated/product-beauty.dim_600x600.jpg",
     label: "Luxe Scent",
     price: "$89",
     style: { top: "42%", right: "-5%" },
     delay: 1.2,
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80",
+    image: "/assets/generated/product-headphones.dim_600x600.jpg",
     label: "AirPods Max",
     price: "$179",
     style: { bottom: "8%", right: "2%" },
@@ -212,6 +210,8 @@ const MINI_CARDS = [
 
 function HeroRightPanel() {
   const [activeShoe, setActiveShoe] = useState(0);
+  const { theme } = useTheme();
+  const isDark = theme !== "light";
 
   return (
     <motion.div
@@ -418,10 +418,14 @@ function HeroRightPanel() {
           <div
             style={{
               width: 112,
-              background: "rgba(255,255,255,0.1)",
+              background: isDark
+                ? "rgba(255,255,255,0.1)"
+                : "rgba(255,255,255,0.85)",
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              border: isDark
+                ? "1px solid rgba(255,255,255,0.2)"
+                : "1px solid rgba(0,0,0,0.12)",
               borderRadius: 16,
               padding: 8,
             }}
@@ -438,7 +442,7 @@ function HeroRightPanel() {
             />
             <p
               style={{
-                color: "#e9d5ff",
+                color: isDark ? "#e9d5ff" : "#1a0030",
                 fontWeight: 700,
                 fontSize: 11,
                 marginTop: 6,
@@ -449,7 +453,7 @@ function HeroRightPanel() {
             </p>
             <p
               style={{
-                color: "#d946ef",
+                color: isDark ? "#d946ef" : "#9b059b",
                 fontWeight: 900,
                 fontSize: 12,
                 textAlign: "center",
@@ -964,7 +968,7 @@ function CategoriesSection() {
                   whileHover={{ scale: 1.03, y: -6 }}
                   transition={{ type: "spring", stiffness: 800, damping: 60 }}
                   className="group relative rounded-2xl overflow-hidden cursor-pointer"
-                  style={{ aspectRatio: "2/3" }}
+                  style={{ aspectRatio: "3/2" }}
                 >
                   <img
                     src={cat.image}
@@ -1122,20 +1126,24 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
             </motion.button>
           </div>
         </div>
-        <div
-          ref={scrollRef}
-          className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide"
-          style={{
-            scrollbarWidth: "none",
-            paddingTop: "12px",
-            marginTop: "-12px",
-          }}
-        >
-          {trending.map((product, i) => (
-            <div key={product.id} className="flex-shrink-0 w-72">
-              <ProductCard product={product} index={i} />
-            </div>
-          ))}
+        <div style={{ marginLeft: "-20px", marginRight: "-20px" }}>
+          <div
+            ref={scrollRef}
+            className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide"
+            style={{
+              scrollbarWidth: "none",
+              paddingTop: "12px",
+              marginTop: "-12px",
+              paddingLeft: "20px",
+              paddingRight: "20px",
+            }}
+          >
+            {trending.map((product, i) => (
+              <div key={product.id} className="flex-shrink-0 w-72">
+                <ProductCard product={product} index={i} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

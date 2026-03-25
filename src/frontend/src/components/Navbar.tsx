@@ -131,7 +131,7 @@ export default function Navbar() {
               <Heart size={18} />
               {wishlistItems.length > 0 && (
                 <span
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-black flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
                   style={{
                     background: "linear-gradient(135deg, #00ccff, #ff00ff)",
                   }}
@@ -154,7 +154,7 @@ export default function Navbar() {
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-black flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
                   style={{
                     background: "linear-gradient(135deg, #00ccff, #ff00ff)",
                   }}

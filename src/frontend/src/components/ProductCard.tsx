@@ -41,8 +41,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{
-        y: -10,
-        transition: { type: "spring", stiffness: 500, damping: 20 },
+        scale: 1.03,
+        y: -6,
+        transition: { type: "spring", stiffness: 800, damping: 60 },
       }}
       transition={{
         delay: index * 0.05,
@@ -56,37 +57,42 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     >
       <Link to="/products/$id" params={{ id: product.id }}>
         <div
-          className="relative rounded-2xl overflow-hidden bg-card border border-border/50 transition-all duration-300"
+          className="relative rounded-2xl overflow-hidden bg-card border border-border/50 transition-all duration-300 cursor-pointer"
           style={{
             boxShadow: hovered
-              ? "0 0 30px rgba(0,255,255,0.45), 0 0 60px rgba(255,0,255,0.2)"
-              : "0 4px 20px rgba(0,0,0,0.4)",
+              ? "0 0 30px rgba(0,255,255,0.35), 0 0 60px rgba(255,0,255,0.15)"
+              : "0 2px 8px rgba(0,0,0,0.12)",
           }}
         >
           <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-            <motion.img
+            {/* Image — scales on hover like FeaturedCategories */}
+            <img
               src={image}
               alt={product.title}
-              className="w-full h-full object-cover"
-              animate={{ scale: hovered ? 1.08 : 1 }}
-              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy"
             />
+
+            {/* Base gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+            {/* Cyan/magenta overlay on hover — same as FeaturedCategories */}
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${
-                hovered ? "opacity-100" : "opacity-50"
-              }`}
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(255,0,255,0.12) 50%, transparent 100%)",
+              }}
             />
-            {/* Cyan glow overlay on hover */}
-            {hovered && (
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(0,255,255,0.12) 0%, rgba(255,0,255,0.08) 100%)",
-                }}
-              />
-            )}
+
+            {/* Glowing inset border on hover — same as FeaturedCategories */}
+            <div
+              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+              style={{
+                boxShadow:
+                  "inset 0 0 0 1.5px rgba(0,255,255,0.7), 0 0 30px rgba(0,255,255,0.35)",
+              }}
+            />
 
             <div className="absolute top-3 left-3 flex flex-col gap-1">
               {product.isFlashSale && (
@@ -119,6 +125,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               )}
             </div>
 
+            {/* Wishlist button */}
             <motion.button
               type="button"
               onClick={(e) => {
@@ -131,7 +138,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 transition: { type: "spring", stiffness: 400, damping: 12 },
               }}
               whileTap={{ scale: 0.8 }}
-              className="absolute top-3 right-3 p-2 rounded-full backdrop-blur-md bg-black/30 border border-white/10 transition-all hover:bg-black/50"
+              className="absolute top-3 right-3 p-2 rounded-full backdrop-blur-md border transition-all"
+              style={{
+                background: "rgba(0, 0, 0, 0.55)",
+                borderColor: "rgba(255, 255, 255, 0.25)",
+              }}
               aria-label="Toggle wishlist"
             >
               <Heart
@@ -142,6 +153,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               />
             </motion.button>
 
+            {/* Quick Add button — appears instantly on hover */}
             <motion.button
               type="button"
               onClick={handleAddToCart}
@@ -184,7 +196,16 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <h3 className="font-display font-semibold text-sm text-foreground line-clamp-1">
               {product.title}
             </h3>
-            <div className="flex items-center gap-1 mt-1.5">
+
+            {/* Expanding gradient line — same as FeaturedCategories */}
+            <div
+              className="mt-1.5 h-[2px] w-8 rounded-full transition-all duration-300 group-hover:w-14"
+              style={{
+                background: "linear-gradient(90deg, #00ffff, #ff00ff)",
+              }}
+            />
+
+            <div className="flex items-center gap-1 mt-2">
               {STARS.map((starIdx) => (
                 <Star
                   key={starIdx}
