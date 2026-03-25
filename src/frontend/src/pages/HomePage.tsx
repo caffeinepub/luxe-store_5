@@ -1087,24 +1087,15 @@ function TiltCard({ children }: { children: React.ReactNode }) {
 
 // ─── Trending Section ──────────────────────────────────────────────────────────────
 function TrendingSection({ products }: { products: typeof mockProducts }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const trending = products.filter((p) => p.isTrending);
+  const sectionRef = useRef(null);
+  const sectionInView = useInView(sectionRef, { once: true, margin: "-100px" });
+  const trending = products.filter((p) => p.isTrending).slice(0, 6);
   const { addItem } = useCart();
   const { toggle, has } = useWishlist();
 
-  const scroll = (dir: "left" | "right") => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollBy({
-      left: dir === "right" ? 320 : -320,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <section
-      ref={ref}
+      ref={sectionRef}
       className="py-20 relative overflow-hidden"
       style={{ background: "var(--section-alt-bg)" }}
     >
@@ -1128,11 +1119,13 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
           opacity: 0.2,
         }}
       />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="flex items-end justify-between mb-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
+            animate={sectionInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
           >
             <p className="text-luxe-cyan text-xs uppercase tracking-widest font-semibold mb-2">
               Hot Right Now
@@ -1142,174 +1135,173 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
               className="font-display text-4xl font-black uppercase text-foreground"
             />
           </motion.div>
-          <div className="flex gap-2">
-            <motion.button
-              type="button"
-              onClick={() => scroll("left")}
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.85, rotate: -5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="p-3 rounded-full glass-card border border-border/50 hover:border-luxe-cyan/50 transition-all"
-              data-ocid="trending.pagination_prev"
-            >
-              <ChevronLeft size={18} />
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={() => scroll("right")}
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.85, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="p-3 rounded-full glass-card border border-border/50 hover:border-luxe-cyan/50 transition-all"
-              data-ocid="trending.pagination_next"
-            >
-              <ChevronRight size={18} />
-            </motion.button>
-          </div>
-        </div>
-        <div style={{ marginLeft: "-20px", marginRight: "-20px" }}>
-          <div
-            ref={scrollRef}
-            className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide"
-            style={{
-              scrollbarWidth: "none",
-              paddingTop: "20px",
-              paddingBottom: "20px",
-              marginTop: "-20px",
-              paddingLeft: "20px",
-              paddingRight: "20px",
-            }}
+          <motion.a
+            href="/products"
+            initial={{ opacity: 0, x: 20 }}
+            animate={sectionInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+            className="hidden sm:flex items-center gap-2 text-sm font-semibold"
+            style={{ color: "#00ffff" }}
+            data-ocid="trending.link"
           >
-            {trending.map((product, i) => (
-              <TiltCard key={product.id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{
-                    type: "spring",
-                    stiffness: 350,
-                    damping: 20,
-                    delay: i * 0.1,
-                  }}
-                  whileHover={{
-                    scale: 1.03,
-                    y: -6,
-                    transition: { type: "spring", stiffness: 800, damping: 60 },
-                  }}
-                  className="group flex-shrink-0 w-72 rounded-2xl border border-border/50 bg-white/5 cursor-pointer relative"
-                  data-ocid={`trending.item.${i + 1}`}
-                >
-                  {/* Card-level glow border */}
-                  <div
-                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none z-10"
-                    style={{
-                      boxShadow: "inset 0 0 0 1.5px rgba(0,255,255,0.7)",
-                    }}
-                  />
-                  {/* Image area */}
-                  <div className="aspect-square overflow-hidden relative rounded-t-2xl">
-                    <img
-                      src={getProductImage(product)}
-                      alt={product.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                    {/* Cyan/magenta gradient overlay */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(255,0,255,0.12) 50%, transparent 100%)",
-                      }}
-                    />
+            View All
+            <span
+              className="inline-block text-lg"
+              style={{ filter: "drop-shadow(0 0 6px #00ffff)" }}
+            >
+              →
+            </span>
+          </motion.a>
+        </div>
 
-                    {/* Trending badge */}
-                    <span
-                      className="absolute top-2 left-2 text-xs text-white px-2 py-1 rounded-full font-bold"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #a855f7 0%, #d946ef 100%)",
-                        boxShadow: "0 0 10px rgba(168,85,247,0.5)",
-                      }}
-                    >
-                      Trending
-                    </span>
-                    {/* Wishlist heart */}
-                    <button
-                      type="button"
-                      onClick={() => toggle(product.id)}
-                      className="absolute top-2 right-2 p-1.5 rounded-full"
-                      style={{ background: "rgba(0,0,0,0.4)" }}
-                      data-ocid={`trending.toggle.${i + 1}`}
-                    >
-                      <Heart
-                        size={14}
-                        className={
-                          has(product.id)
-                            ? "fill-red-500 text-red-500"
-                            : "text-white"
-                        }
-                      />
-                    </button>
-                  </div>
-                  {/* Card body */}
-                  <div className="p-4">
-                    <p className="text-xs text-luxe-cyan font-semibold uppercase tracking-wider mb-1">
-                      {product.category}
-                    </p>
-                    <p className="text-sm font-bold text-foreground line-clamp-1">
-                      {product.title}
-                    </p>
-                    <div
-                      className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
-                      style={{
-                        background: "linear-gradient(90deg, #00ffff, #ff00ff)",
-                      }}
-                    />
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-purple-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                      Shop Now →
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="font-bold text-luxe-cyan">
-                        ${product.price.toFixed(2)}
-                      </span>
-                      {product.originalPrice > product.price && (
-                        <span className="text-xs text-muted-foreground line-through">
-                          ${product.originalPrice.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.88 }}
-                      onClick={() =>
-                        addItem({
-                          productId: product.id,
-                          title: product.title,
-                          price: product.price,
-                          image: getProductImage(product),
-                          size: product.sizes[0] ?? "One Size",
-                          color: product.colors[0] ?? "#000",
-                        })
-                      }
-                      className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all duration-300"
-                      style={{
-                        background: "rgba(0,255,255,0.08)",
-                        border: "1px solid rgba(0,255,255,0.3)",
-                        color: "#00ffff",
-                      }}
-                      data-ocid={`trending.submit_button.${i + 1}`}
-                    >
-                      Add to Cart
-                    </motion.button>
-                  </div>
-                </motion.div>
-              </TiltCard>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {trending.map((product, i) => (
+            <TrendingCard
+              key={product.id}
+              product={product}
+              index={i}
+              onAddToCart={() =>
+                addItem({
+                  productId: product.id,
+                  title: product.title,
+                  price: product.price,
+                  image: getProductImage(product),
+                  size: product.sizes[0] ?? "One Size",
+                  color: product.colors[0] ?? "#000",
+                })
+              }
+              isWishlisted={has(product.id)}
+              onWishlistToggle={() => toggle(product.id)}
+            />
+          ))}
         </div>
       </div>
     </section>
+  );
+}
+
+function TrendingCard({
+  product,
+  index,
+  onAddToCart,
+  isWishlisted,
+  onWishlistToggle,
+}: {
+  product: (typeof mockProducts)[0];
+  index: number;
+  onAddToCart: () => void;
+  isWishlisted: boolean;
+  onWishlistToggle: () => void;
+}) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 80 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{
+        type: "spring",
+        stiffness: 260,
+        damping: 24,
+        delay: index * 0.1,
+      }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      whileHover={{ scale: 1.03 }}
+      className="group rounded-2xl overflow-hidden border bg-white/5 cursor-pointer"
+      style={{
+        borderColor: hovered ? "rgba(0,255,255,0.6)" : "rgba(255,255,255,0.1)",
+        boxShadow: hovered
+          ? "0 0 0 1.5px #00ffff, 0 0 24px rgba(0,255,255,0.3)"
+          : "none",
+        transition: "box-shadow 0.3s ease, border-color 0.3s ease",
+      }}
+      data-ocid={`trending.item.${index + 1}`}
+    >
+      <div className="aspect-[3/4] overflow-hidden relative">
+        <img
+          src={getProductImage(product)}
+          alt={product.title}
+          className="w-full h-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.12]"
+          loading="lazy"
+        />
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(0,255,255,0.15) 0%, rgba(168,85,247,0.1) 100%)",
+          }}
+        />
+        <span
+          className="absolute top-3 left-3 w-8 h-8 flex items-center justify-center rounded-full text-xs font-black"
+          style={{
+            background: "linear-gradient(135deg, #00ffff 0%, #a855f7 100%)",
+            boxShadow: "0 0 10px rgba(0,255,255,0.6)",
+            color: "#000",
+          }}
+        >
+          #{index + 1}
+        </span>
+        <button
+          type="button"
+          onClick={onWishlistToggle}
+          className="absolute top-3 right-3 p-2 rounded-full"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+          data-ocid={`trending.toggle.${index + 1}`}
+        >
+          <Heart
+            size={14}
+            className={
+              isWishlisted ? "fill-red-500 text-red-500" : "text-white"
+            }
+          />
+        </button>
+      </div>
+
+      <div className="p-4">
+        <p className="text-xs text-luxe-cyan font-semibold uppercase tracking-wider mb-1">
+          {product.category}
+        </p>
+        <p className="font-bold text-foreground line-clamp-1 text-base">
+          {product.title}
+        </p>
+        <div
+          className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
+          style={{ background: "linear-gradient(90deg, #00ffff, #ff00ff)" }}
+        />
+        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-purple-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+          Shop Now →
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="font-bold text-luxe-cyan text-lg">
+            ${product.price.toFixed(2)}
+          </span>
+          {product.originalPrice > product.price && (
+            <span className="text-xs text-muted-foreground line-through">
+              ${product.originalPrice.toFixed(2)}
+            </span>
+          )}
+        </div>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.88 }}
+          onClick={onAddToCart}
+          className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
+          style={{
+            background: "rgba(0,255,255,0.08)",
+            border: "1px solid rgba(0,255,255,0.3)",
+            color: "#00ffff",
+          }}
+          data-ocid={`trending.submit_button.${index + 1}`}
+        >
+          Add to Cart
+        </motion.button>
+      </div>
+    </motion.div>
   );
 }
 
