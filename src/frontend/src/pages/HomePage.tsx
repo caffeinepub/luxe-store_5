@@ -208,10 +208,43 @@ const MINI_CARDS = [
   },
 ];
 
+// Inject shoe glitch keyframes once
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("shoe-glitch-style")
+) {
+  const s = document.createElement("style");
+  s.id = "shoe-glitch-style";
+  s.textContent = `
+    @keyframes shoeGlitch {
+      0%   { transform: translate(0); filter: brightness(1); }
+      10%  { transform: translate(-4px, 2px) skewX(5deg); filter: brightness(1.5) hue-rotate(90deg); }
+      20%  { transform: translate(4px, -2px) skewX(-3deg); filter: brightness(0.8) hue-rotate(-90deg); }
+      30%  { transform: translate(-2px, 0); filter: brightness(1.3); }
+      50%  { transform: translate(3px, 1px) skewX(2deg); filter: brightness(1) hue-rotate(180deg); }
+      70%  { transform: translate(-3px, -1px); filter: brightness(1.2); }
+      100% { transform: translate(0); filter: brightness(1); }
+    }
+    .shoe-glitch { animation: shoeGlitch 0.4s steps(1) forwards; }
+  `;
+  document.head.appendChild(s);
+}
+
 function HeroRightPanel() {
   const [activeShoe, setActiveShoe] = useState(0);
+  const [glitching, setGlitching] = useState(false);
   const { theme } = useTheme();
   const isDark = theme !== "light";
+
+  // Auto-rotate shoes every 3 seconds with glitch effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGlitching(true);
+      setTimeout(() => setGlitching(false), 400);
+      setActiveShoe((prev) => (prev + 1) % SHOE_IMAGES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <motion.div
@@ -250,7 +283,6 @@ function HeroRightPanel() {
           animation: "pulse 5s ease-in-out infinite 1s",
         }}
       />
-
       {/* Glowing platform disc */}
       <motion.div
         animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.5, 0.8, 0.5] }}
@@ -273,7 +305,6 @@ function HeroRightPanel() {
           zIndex: 1,
         }}
       />
-
       {/* Orbital rings */}
       {/* Outer ring */}
       <motion.div
@@ -335,7 +366,6 @@ function HeroRightPanel() {
           zIndex: 2,
         }}
       />
-
       {/* Main shoe image */}
       <motion.div
         animate={{ y: [0, -18, 0] }}
@@ -360,6 +390,7 @@ function HeroRightPanel() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className={glitching ? "shoe-glitch" : ""}
             style={{
               width: 340,
               height: 260,
@@ -397,7 +428,6 @@ function HeroRightPanel() {
           New Arrival
         </motion.div>
       </motion.div>
-
       {/* Mini product cards */}
       {MINI_CARDS.map((card) => (
         <motion.div
@@ -463,49 +493,7 @@ function HeroRightPanel() {
             </p>
           </div>
         </motion.div>
-      ))}
-
-      {/* Color selector dots */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 12,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: 10,
-          zIndex: 20,
-        }}
-      >
-        {SHOE_IMAGES.map((shoeUrl, idx) => (
-          <motion.button
-            key={shoeUrl}
-            type="button"
-            onClick={() => setActiveShoe(idx)}
-            whileHover={{ scale: 1.3 }}
-            whileTap={{ scale: 0.85 }}
-            transition={{ type: "spring", stiffness: 400, damping: 15 }}
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background:
-                activeShoe === idx
-                  ? "linear-gradient(135deg, #00ccff, #ff00ff)"
-                  : "transparent",
-              border:
-                activeShoe === idx
-                  ? "2px solid #ff00ff"
-                  : "2px solid rgba(0,255,255,0.5)",
-              cursor: "pointer",
-              padding: 0,
-              boxShadow:
-                activeShoe === idx ? "0 0 10px rgba(0,255,255,0.8)" : "none",
-            }}
-            data-ocid={`hero.toggle.${idx + 1}`}
-          />
-        ))}
-      </div>
+      ))}{" "}
     </motion.div>
   );
 }
