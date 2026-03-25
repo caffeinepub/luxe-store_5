@@ -11,6 +11,21 @@ export default function GlitchCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
 
+  // Glitch state: which orb indices are currently glitching
+  const glitchState = useRef<
+    Map<
+      number,
+      {
+        offsetX: number;
+        color: string;
+        opacity: number;
+        scaleX: number;
+        until: number;
+      }
+    >
+  >(new Map());
+  const nextGlitchTime = useRef<number>(0);
+
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
@@ -18,7 +33,7 @@ export default function GlitchCursor() {
 
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-    const animate = () => {
+    const animate = (now: number) => {
       const mouse = mousePos.current;
       const pts = trailPos.current;
 
@@ -34,6 +49,52 @@ export default function GlitchCursor() {
       if (cursorRef.current) {
         cursorRef.current.style.left = `${mouse.x}px`;
         cursorRef.current.style.top = `${mouse.y}px`;
+      }
+
+      // --- Glitch scheduler ---
+      if (now >= nextGlitchTime.current) {
+        // Schedule next glitch burst in 150–300ms
+        nextGlitchTime.current = now + 150 + Math.random() * 150;
+
+        // Pick 2–3 random indices to glitch
+        const count = 2 + Math.floor(Math.random() * 2);
+        const duration = 60 + Math.random() * 40; // 60–100ms
+        const until = now + duration;
+        const used = new Set<number>();
+
+        for (let g = 0; g < count; g++) {
+          let idx = Math.floor(Math.random() * TRAIL_LENGTH);
+          while (used.has(idx)) idx = (idx + 1) % TRAIL_LENGTH;
+          used.add(idx);
+
+          const isScanline = g === 0 && Math.random() > 0.5;
+          if (isScanline) {
+            // Scanline tear: one mid-trail orb gets horizontal stretch
+            const midIdx = 4 + Math.floor(Math.random() * 4);
+            glitchState.current.set(midIdx, {
+              offsetX: (Math.random() - 0.5) * 8,
+              color: "#00ffff",
+              opacity: 0.35,
+              scaleX: 2.5,
+              until,
+            });
+          } else {
+            // Normal glitch: offset + color flash + opacity spike
+            const flashColor = Math.random() > 0.5 ? "#ff00ff" : "#00ffff";
+            glitchState.current.set(idx, {
+              offsetX: (Math.random() - 0.5) * 8,
+              color: flashColor,
+              opacity: 0.9,
+              scaleX: 1,
+              until,
+            });
+          }
+        }
+      }
+
+      // Clear expired glitch entries
+      for (const [key, val] of glitchState.current) {
+        if (now >= val.until) glitchState.current.delete(key);
       }
 
       const overlay = overlayRef.current;
@@ -70,9 +131,18 @@ export default function GlitchCursor() {
             color = "#a855f7";
           }
 
-          const opacity = ratio * 0.6;
-          // Minimal glow — very tight, no large bloom
+          let opacity = ratio * 0.6;
           const glowSize = size * 0.8;
+          let transformExtra = "";
+
+          // Apply glitch state if active
+          const gs = glitchState.current.get(i);
+          if (gs) {
+            color = gs.color;
+            opacity = gs.opacity;
+            const tx = -50 + gs.offsetX;
+            transformExtra = `translate(${tx}%, -50%) scaleX(${gs.scaleX})`;
+          }
 
           orb.style.left = `${pt.x}px`;
           orb.style.top = `${pt.y}px`;
@@ -82,6 +152,8 @@ export default function GlitchCursor() {
           orb.style.background = color;
           orb.style.boxShadow = `0 0 ${glowSize}px ${glowSize * 0.3}px ${color}`;
           orb.style.filter = `blur(${(1 - ratio) * 0.8}px)`;
+          orb.style.transform = transformExtra || "translate(-50%,-50%)";
+          orb.style.borderRadius = gs?.scaleX && gs.scaleX > 1 ? "2px" : "50%";
         }
       }
 
@@ -133,11 +205,9 @@ export default function GlitchCursor() {
           xmlns="http://www.w3.org/2000/svg"
           style={{
             display: "block",
-            // 10% glow only — very subtle
             filter: "drop-shadow(0 0 1.5px rgba(0,255,255,0.4))",
           }}
         >
-          {/* Standard pointer arrow, tip at (2,2) */}
           <path
             d="M2 2 L2 18 L6.5 13.5 L10 20 L12.5 19 L9 12.5 L16 12.5 Z"
             fill="white"
