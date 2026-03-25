@@ -225,15 +225,31 @@ if (
   s.id = "shoe-glitch-style";
   s.textContent = `
     @keyframes shoeGlitch {
-      0%   { transform: translate(0); filter: brightness(1); }
-      10%  { transform: translate(-4px, 2px) skewX(5deg); filter: brightness(1.5) hue-rotate(90deg); }
-      20%  { transform: translate(4px, -2px) skewX(-3deg); filter: brightness(0.8) hue-rotate(-90deg); }
-      30%  { transform: translate(-2px, 0); filter: brightness(1.3); }
-      50%  { transform: translate(3px, 1px) skewX(2deg); filter: brightness(1) hue-rotate(180deg); }
-      70%  { transform: translate(-3px, -1px); filter: brightness(1.2); }
-      100% { transform: translate(0); filter: brightness(1); }
+      0%   { transform: translate(0); filter: brightness(1) saturate(1); clip-path: inset(0 0 0 0); opacity: 1; }
+      5%   { clip-path: inset(10% 0 80% 0); transform: translate(-8px, 0); filter: brightness(2) saturate(3) hue-rotate(90deg); opacity: 0.9; }
+      10%  { clip-path: inset(60% 0 10% 0); transform: translate(8px, 0); filter: brightness(0.5) hue-rotate(-90deg); opacity: 1; }
+      15%  { clip-path: inset(30% 0 50% 0); transform: translate(-5px, 3px) skewX(8deg); filter: brightness(1.8) hue-rotate(180deg); }
+      20%  { clip-path: inset(0 0 0 0); transform: translate(6px, -3px) skewX(-6deg); filter: brightness(1.2) saturate(2); }
+      25%  { clip-path: inset(45% 0 25% 0); transform: translate(-10px, 0); filter: brightness(2.5) hue-rotate(270deg); opacity: 0.7; }
+      30%  { clip-path: inset(0 0 0 0); transform: translate(0); filter: brightness(1); opacity: 1; }
+      35%  { clip-path: inset(70% 0 5% 0); transform: translate(4px, 0) skewX(3deg); filter: brightness(1.5) hue-rotate(45deg); }
+      40%  { clip-path: inset(0 0 0 0); transform: translate(-3px, 1px); filter: brightness(0.9); }
+      50%  { transform: translate(2px, -1px); filter: brightness(1.1); clip-path: inset(0 0 0 0); }
+      60%  { transform: translate(-2px, 0); filter: brightness(1); }
+      100% { transform: translate(0); filter: brightness(1) saturate(1); clip-path: inset(0 0 0 0); opacity: 1; }
     }
-    .shoe-glitch { animation: shoeGlitch 0.4s steps(1) forwards; }
+    @keyframes shoeGlitchOverlay {
+      0%   { opacity: 0; }
+      5%   { opacity: 0.6; background: rgba(0,255,255,0.3); }
+      10%  { opacity: 0.4; background: rgba(255,0,255,0.3); }
+      15%  { opacity: 0.7; background: rgba(0,255,255,0.2); }
+      20%  { opacity: 0; }
+      25%  { opacity: 0.5; background: rgba(255,0,255,0.25); }
+      30%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+    .shoe-glitch { animation: shoeGlitch 0.5s steps(1) forwards; }
+    .shoe-glitch-overlay { animation: shoeGlitchOverlay 0.5s steps(1) forwards; }
   `;
   document.head.appendChild(s);
 }
@@ -248,8 +264,10 @@ function HeroRightPanel() {
   useEffect(() => {
     const interval = setInterval(() => {
       setGlitching(true);
-      setTimeout(() => setGlitching(false), 400);
-      setActiveShoe((prev) => (prev + 1) % SHOE_IMAGES.length);
+      setTimeout(() => {
+        setActiveShoe((prev) => (prev + 1) % SHOE_IMAGES.length);
+      }, 150);
+      setTimeout(() => setGlitching(false), 550);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -389,24 +407,41 @@ function HeroRightPanel() {
           filter: "drop-shadow(0 30px 60px rgba(168,85,247,0.45))",
         }}
       >
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={activeShoe}
-            src={SHOE_IMAGES[activeShoe]}
-            alt="Featured Shoe"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className={glitching ? "shoe-glitch" : ""}
-            style={{
-              width: 340,
-              height: 260,
-              objectFit: "cover",
-              borderRadius: 20,
-            }}
-          />
-        </AnimatePresence>
+        <div style={{ position: "relative", width: 340, height: 260 }}>
+          <AnimatePresence mode="sync">
+            <motion.img
+              key={activeShoe}
+              src={SHOE_IMAGES[activeShoe]}
+              alt="Featured Shoe"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className={glitching ? "shoe-glitch" : ""}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: 340,
+                height: 260,
+                objectFit: "cover",
+                borderRadius: 20,
+              }}
+            />
+          </AnimatePresence>
+          {glitching && (
+            <div
+              className="shoe-glitch-overlay"
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: 20,
+                pointerEvents: "none",
+                zIndex: 20,
+              }}
+            />
+          )}
+        </div>
 
         {/* NEW ARRIVAL badge */}
         <motion.div
