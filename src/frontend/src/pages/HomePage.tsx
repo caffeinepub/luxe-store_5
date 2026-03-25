@@ -1434,28 +1434,6 @@ function FlashSaleSection({ products }: { products: typeof mockProducts }) {
                     />
                     <motion.div
                       className="absolute inset-0 pointer-events-none"
-                      initial={{ x: "-100%", opacity: 0 }}
-                      animate={
-                        isHovered
-                          ? { x: "150%", opacity: 1 }
-                          : { x: "-100%", opacity: 0 }
-                      }
-                      transition={{
-                        duration: 0.65,
-                        ease: "easeInOut",
-                        repeat: isHovered ? Number.POSITIVE_INFINITY : 0,
-                        repeatDelay: 0.8,
-                      }}
-                      style={{
-                        background:
-                          "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.18) 50%, transparent 80%)",
-                        width: "60%",
-                        top: 0,
-                        bottom: 0,
-                      }}
-                    />
-                    <motion.div
-                      className="absolute inset-0 pointer-events-none"
                       animate={{ opacity: isHovered ? 1 : 0 }}
                       transition={{ duration: 0.3 }}
                       style={{
