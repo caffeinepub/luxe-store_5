@@ -16,7 +16,7 @@ import {
   useSpring,
 } from "motion/react";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useAllProducts } from "../hooks/useQueries";
@@ -300,7 +300,6 @@ function HeroRightPanel() {
           background:
             "radial-gradient(circle, rgba(0,255,255,0.45) 0%, transparent 70%)",
           filter: "blur(40px)",
-          animation: "pulse 4s ease-in-out infinite",
         }}
       />
       <div
@@ -314,7 +313,6 @@ function HeroRightPanel() {
           background:
             "radial-gradient(circle, rgba(255,0,255,0.45) 0%, transparent 70%)",
           filter: "blur(32px)",
-          animation: "pulse 5s ease-in-out infinite 1s",
         }}
       />
       {/* Glowing platform disc - CSS animated */}
@@ -331,7 +329,6 @@ function HeroRightPanel() {
           top: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 1,
-          animation: "pulse 3s ease-in-out infinite",
         }}
       />
       {/* Orbital rings */}
@@ -364,22 +361,6 @@ function HeroRightPanel() {
           transform: "translate(-50%, -50%)",
           zIndex: 2,
           animation: "spin-reverse 28s linear infinite",
-          willChange: "transform",
-        }}
-      />
-      {/* Inner ring - CSS animated for performance */}
-      <div
-        className="absolute"
-        style={{
-          width: 280,
-          height: 280,
-          borderRadius: "50%",
-          border: "1px solid rgba(57,255,20,0.3)",
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 2,
-          animation: "spin 18s linear infinite",
           willChange: "transform",
         }}
       />
@@ -436,7 +417,6 @@ function HeroRightPanel() {
           style={{
             position: "absolute",
             top: -14,
-            animation: "pulse 2s ease-in-out infinite",
             left: -10,
             background: "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)",
             borderRadius: 8,
@@ -522,12 +502,8 @@ function HeroRightPanel() {
 // ─── Hero Section ───────────────────────────────────────────────────────────────
 function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
-  const [shopBtnMag, setShopBtnMag] = useState({ x: 0, y: 0 });
-  const [exploreBtnMag, setExploreBtnMag] = useState({ x: 0, y: 0 });
   const [heroGlitch, setHeroGlitch] = useState(false);
-  const shopBtnRef = useRef<HTMLButtonElement>(null);
-  const exploreBtnRef = useRef<HTMLButtonElement>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
 
   // Periodic hero headline glitch every 5-7 seconds
   useEffect(() => {
@@ -546,43 +522,24 @@ function HeroSection() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const rafRef = useRef<number | null>(null);
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    if (rafRef.current) return; // throttle to one update per frame
-    const clientX = e.clientX;
-    const clientY = e.clientY;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      setMouse({ x: clientX - rect.left, y: clientY - rect.top });
-    });
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const onMove = (e: MouseEvent) => {
+      const spotlight = spotlightRef.current;
+      if (!spotlight) return;
+      const rect = section.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      spotlight.style.transform = `translate(${x - 200}px, ${y - 200}px)`;
+    };
+    section.addEventListener("mousemove", onMove, { passive: true });
+    return () => section.removeEventListener("mousemove", onMove);
   }, []);
-
-  const handleMagneticMove = useCallback(
-    (
-      e: React.MouseEvent,
-      setMag: (v: { x: number; y: number }) => void,
-      ref: React.RefObject<HTMLButtonElement | null>,
-    ) => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = (e.clientX - cx) * 0.4;
-      const dy = (e.clientY - cy) * 0.4;
-      setMag({
-        x: Math.max(-8, Math.min(8, dx)),
-        y: Math.max(-8, Math.min(8, dy)),
-      });
-    },
-    [],
-  );
 
   return (
     <section
       ref={sectionRef}
-      onMouseMove={handleMouseMove}
       className="relative min-h-screen flex items-center overflow-hidden scanline-overlay"
     >
       {/* Aurora background blobs */}
@@ -626,35 +583,10 @@ function HeroSection() {
           animationDuration: "18s",
         }}
       />
-      <div
-        className="aurora-blob absolute"
-        style={{
-          width: 400,
-          height: 400,
-          top: "30%",
-          left: "25%",
-          background:
-            "radial-gradient(ellipse, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.08) 50%, transparent 70%)",
-          animationDelay: "-9s",
-          animationDuration: "11s",
-        }}
-      />
-      <div
-        className="aurora-blob absolute"
-        style={{
-          width: 350,
-          height: 350,
-          top: "10%",
-          left: "45%",
-          background:
-            "radial-gradient(ellipse, rgba(57,255,20,0.18) 0%, transparent 60%)",
-          animationDelay: "-3s",
-          animationDuration: "16s",
-        }}
-      />
 
       {/* Mouse spotlight */}
       <div
+        ref={spotlightRef}
         className="absolute pointer-events-none"
         style={{
           width: 400,
@@ -662,9 +594,8 @@ function HeroSection() {
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(0,255,255,0.06) 0%, rgba(255,0,255,0.04) 40%, transparent 70%)",
-          transform: `translate(${mouse.x - 200}px, ${mouse.y - 200}px)`,
-          transition: "transform 0.08s linear",
           zIndex: 1,
+          willChange: "transform",
         }}
       />
 
@@ -753,13 +684,6 @@ function HeroSection() {
             >
               <Link to="/products">
                 <motion.button
-                  ref={shopBtnRef}
-                  onMouseMove={(e) =>
-                    handleMagneticMove(e, setShopBtnMag, shopBtnRef)
-                  }
-                  onMouseLeave={() => setShopBtnMag({ x: 0, y: 0 })}
-                  animate={{ x: shopBtnMag.x, y: shopBtnMag.y }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   whileTap={{ scale: 0.92 }}
                   className="btn-primary text-sm font-bold uppercase tracking-widest neon-pulse"
                   data-ocid="hero.primary_button"
@@ -769,13 +693,6 @@ function HeroSection() {
               </Link>
               <Link to="/about">
                 <motion.button
-                  ref={exploreBtnRef}
-                  onMouseMove={(e) =>
-                    handleMagneticMove(e, setExploreBtnMag, exploreBtnRef)
-                  }
-                  onMouseLeave={() => setExploreBtnMag({ x: 0, y: 0 })}
-                  animate={{ x: exploreBtnMag.x, y: exploreBtnMag.y }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   whileTap={{ scale: 0.92 }}
                   className="btn-outline text-sm font-bold uppercase tracking-widest"
                   data-ocid="hero.secondary_button"

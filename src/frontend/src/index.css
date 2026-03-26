@@ -393,6 +393,7 @@
     pointer-events: none;
     z-index: 3;
     transform: translateZ(0);
+    will-change: transform;
   }
 
   /* ─── Animated Neon Border Card ───────────────────────────── */
@@ -1015,6 +1016,7 @@ html:not(.dark) ::-webkit-scrollbar-track {
   filter: blur(60px);
   animation: aurora-shift var(--aurora-duration, 14s) ease-in-out infinite;
   will-change: transform;
+  contain: layout style paint;
 }
 
 .marquee-track {
