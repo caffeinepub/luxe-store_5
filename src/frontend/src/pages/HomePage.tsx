@@ -317,14 +317,8 @@ function HeroRightPanel() {
           animation: "pulse 5s ease-in-out infinite 1s",
         }}
       />
-      {/* Glowing platform disc */}
-      <motion.div
-        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.5, 0.8, 0.5] }}
-        transition={{
-          duration: 3,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
+      {/* Glowing platform disc - CSS animated */}
+      <div
         className="absolute"
         style={{
           width: 520,
@@ -337,17 +331,12 @@ function HeroRightPanel() {
           top: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 1,
+          animation: "pulse 3s ease-in-out infinite",
         }}
       />
       {/* Orbital rings */}
-      {/* Outer ring */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 40,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "linear",
-        }}
+      {/* Outer ring - CSS animated for performance */}
+      <div
         className="absolute"
         style={{
           width: 520,
@@ -358,16 +347,12 @@ function HeroRightPanel() {
           top: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 2,
+          animation: "spin 40s linear infinite",
+          willChange: "transform",
         }}
       />
-      {/* Middle ring */}
-      <motion.div
-        animate={{ rotate: -360 }}
-        transition={{
-          duration: 28,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "linear",
-        }}
+      {/* Middle ring - CSS animated for performance */}
+      <div
         className="absolute"
         style={{
           width: 400,
@@ -378,16 +363,12 @@ function HeroRightPanel() {
           top: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 2,
+          animation: "spin-reverse 28s linear infinite",
+          willChange: "transform",
         }}
       />
-      {/* Inner ring */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 18,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "linear",
-        }}
+      {/* Inner ring - CSS animated for performance */}
+      <div
         className="absolute"
         style={{
           width: 280,
@@ -398,21 +379,18 @@ function HeroRightPanel() {
           top: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 2,
+          animation: "spin 18s linear infinite",
+          willChange: "transform",
         }}
       />
       {/* Main shoe image */}
-      <motion.div
-        animate={{ y: [0, -18, 0] }}
-        transition={{
-          duration: 4,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
+      <div
         style={{
           position: "relative",
           zIndex: 10,
-          transform: "perspective(900px) rotateY(-8deg) rotateX(4deg)",
           filter: "drop-shadow(0 30px 60px rgba(168,85,247,0.45))",
+          animation: "float 4s ease-in-out infinite",
+          willChange: "transform",
         }}
       >
         <div style={{ position: "relative", width: 340, height: 260 }}>
@@ -453,17 +431,12 @@ function HeroRightPanel() {
           )}
         </div>
 
-        {/* NEW ARRIVAL badge */}
-        <motion.div
-          animate={{ scale: [1, 1.08, 1] }}
-          transition={{
-            duration: 2,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
+        {/* NEW ARRIVAL badge - CSS animated */}
+        <div
           style={{
             position: "absolute",
             top: -14,
+            animation: "pulse 2s ease-in-out infinite",
             left: -10,
             background: "linear-gradient(135deg, #00ccff 0%, #ff00ff 100%)",
             borderRadius: 8,
@@ -479,23 +452,18 @@ function HeroRightPanel() {
           }}
         >
           New Arrival
-        </motion.div>
-      </motion.div>
-      {/* Mini product cards */}
+        </div>
+      </div>
+      {/* Mini product cards - CSS animated */}
       {MINI_CARDS.map((card) => (
-        <motion.div
+        <div
           key={card.label}
-          animate={{ y: [0, -10, 0] }}
-          transition={{
-            duration: 3,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-            delay: card.delay,
-          }}
           style={{
             position: "absolute",
             ...card.style,
             zIndex: 15,
+            animation: `float 3s ease-in-out ${card.delay}s infinite`,
+            willChange: "transform",
           }}
         >
           <div
@@ -545,7 +513,7 @@ function HeroRightPanel() {
               {card.price}
             </p>
           </div>
-        </motion.div>
+        </div>
       ))}{" "}
     </motion.div>
   );
@@ -578,10 +546,17 @@ function HeroSection() {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  const rafRef = useRef<number | null>(null);
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    if (!sectionRef.current) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    if (rafRef.current) return; // throttle to one update per frame
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      setMouse({ x: clientX - rect.left, y: clientY - rect.top });
+    });
   }, []);
 
   const handleMagneticMove = useCallback(
@@ -604,15 +579,11 @@ function HeroSection() {
     [],
   );
 
-  // Split headline
-  let charIdx = 0;
-
   return (
     <section
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       className="relative min-h-screen flex items-center overflow-hidden scanline-overlay"
-      style={{ willChange: "transform" }}
     >
       {/* Aurora background blobs */}
       <div
@@ -720,85 +691,48 @@ function HeroSection() {
               New Collection 2026
             </motion.div>
 
-            {/* Character-split headline */}
+            {/* Word-level headline (perf: 3 motion.spans vs 24) */}
             <h1
               className={`font-display text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight text-foreground mb-6${heroGlitch ? " hero-glitch" : ""}`}
               aria-label="DISCOVER PREMIUM PRODUCTS"
             >
-              <span>
-                {"DISCOVER".split("").map((char) => {
-                  const delay = charIdx++ * 0.03;
-                  const key = `d-${charIdx}`;
-                  return (
-                    <motion.span
-                      key={key}
-                      initial={{ opacity: 0, y: 60, rotateX: -90 }}
-                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                      transition={{
-                        delay: delay + 0.3,
-                        duration: 0.5,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      style={{
-                        display: "inline-block",
-                        transformOrigin: "bottom",
-                      }}
-                    >
-                      {char}
-                    </motion.span>
-                  );
-                })}
-              </span>
-              <br />
-              <span className="gradient-text">
-                {"PREMIUM".split("").map((char) => {
-                  const delay = charIdx++ * 0.03;
-                  const key = `p-${charIdx}`;
-                  return (
-                    <motion.span
-                      key={key}
-                      initial={{ opacity: 0, y: 60, rotateX: -90 }}
-                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                      transition={{
-                        delay: delay + 0.3,
-                        duration: 0.5,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      style={{
-                        display: "inline-block",
-                        transformOrigin: "bottom",
-                      }}
-                    >
-                      {char}
-                    </motion.span>
-                  );
-                })}
-              </span>
-              <br />
-              <span>
-                {"PRODUCTS".split("").map((char) => {
-                  const delay = charIdx++ * 0.03;
-                  const key = `pr-${charIdx}`;
-                  return (
-                    <motion.span
-                      key={key}
-                      initial={{ opacity: 0, y: 60, rotateX: -90 }}
-                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                      transition={{
-                        delay: delay + 0.3,
-                        duration: 0.5,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      style={{
-                        display: "inline-block",
-                        transformOrigin: "bottom",
-                      }}
-                    >
-                      {char}
-                    </motion.span>
-                  );
-                })}
-              </span>
+              <motion.span
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.3,
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                style={{ display: "block" }}
+              >
+                DISCOVER
+              </motion.span>
+              <motion.span
+                className="gradient-text"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.45,
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                style={{ display: "block" }}
+              >
+                PREMIUM
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.6,
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                style={{ display: "block" }}
+              >
+                PRODUCTS
+              </motion.span>
             </h1>
 
             <motion.p

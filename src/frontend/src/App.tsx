@@ -10,7 +10,6 @@ import { ThemeProvider } from "next-themes";
 import { Suspense, lazy } from "react";
 import CartDrawer from "./components/CartDrawer";
 import Footer from "./components/Footer";
-import GlitchCursor from "./components/GlitchCursor";
 import Navbar from "./components/Navbar";
 import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
@@ -29,7 +28,6 @@ const AdminPage = lazy(() => import("./pages/AdminPage"));
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <GlitchCursor />
       <Navbar />
       <CartDrawer />
       <main>
