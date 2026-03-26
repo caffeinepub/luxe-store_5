@@ -503,7 +503,6 @@ function HeroRightPanel() {
 function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [heroGlitch, setHeroGlitch] = useState(false);
-  const spotlightRef = useRef<HTMLDivElement>(null);
 
   // Periodic hero headline glitch every 5-7 seconds
   useEffect(() => {
@@ -520,21 +519,6 @@ function HeroSection() {
     };
     schedule();
     return () => clearTimeout(timeoutId);
-  }, []);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const onMove = (e: MouseEvent) => {
-      const spotlight = spotlightRef.current;
-      if (!spotlight) return;
-      const rect = section.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      spotlight.style.transform = `translate(${x - 200}px, ${y - 200}px)`;
-    };
-    section.addEventListener("mousemove", onMove, { passive: true });
-    return () => section.removeEventListener("mousemove", onMove);
   }, []);
 
   return (
@@ -581,21 +565,6 @@ function HeroSection() {
             "radial-gradient(ellipse, rgba(255,0,255,0.3) 0%, rgba(180,0,255,0.12) 50%, transparent 70%)",
           animationDelay: "-5s",
           animationDuration: "18s",
-        }}
-      />
-
-      {/* Mouse spotlight */}
-      <div
-        ref={spotlightRef}
-        className="absolute pointer-events-none"
-        style={{
-          width: 400,
-          height: 400,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(0,255,255,0.06) 0%, rgba(255,0,255,0.04) 40%, transparent 70%)",
-          zIndex: 1,
-          willChange: "transform",
         }}
       />
 
