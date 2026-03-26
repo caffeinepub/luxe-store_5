@@ -378,6 +378,7 @@
   /* ─── Scanline Overlay ────────────────────────────────────── */
   .scanline-overlay {
     position: relative;
+    contain: layout style;
   }
 
   .dark .scanline-overlay::after {
@@ -396,6 +397,7 @@
     );
     pointer-events: none;
     z-index: 3;
+    transform: translateZ(0);
   }
 
   /* ─── Animated Neon Border Card ───────────────────────────── */
@@ -496,6 +498,7 @@
       rgba(0, 255, 255, 0.015) 2px,
       rgba(0, 255, 255, 0.015) 4px
     );
+    transform: translateZ(0);
   }
 }
 

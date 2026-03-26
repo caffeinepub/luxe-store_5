@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 
 const TRAIL_LENGTH = 14;
-// Skip the first N orbs so no light appears directly under the arrow tip
 const TRAIL_START = 3;
 
 export default function GlitchCursor() {
@@ -9,11 +8,10 @@ export default function GlitchCursor() {
   const trailPos = useRef<{ x: number; y: number }[]>(
     Array.from({ length: TRAIL_LENGTH }, () => ({ x: -200, y: -200 })),
   );
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
 
-  // Glitch state: which orb indices are currently glitching
   const glitchState = useRef<
     Map<
       number,
@@ -39,7 +37,6 @@ export default function GlitchCursor() {
       const mouse = mousePos.current;
       const pts = trailPos.current;
 
-      // Faster lerp so trail closely follows the cursor
       pts[0].x = lerp(pts[0].x, mouse.x, 0.45);
       pts[0].y = lerp(pts[0].y, mouse.y, 0.45);
 
@@ -54,9 +51,9 @@ export default function GlitchCursor() {
         cursorRef.current.style.top = `${mouse.y}px`;
       }
 
-      // --- Glitch scheduler ---
+      // --- Glitch scheduler: fire at most every 200ms ---
       if (now >= nextGlitchTime.current) {
-        nextGlitchTime.current = now + 150 + Math.random() * 150;
+        nextGlitchTime.current = now + 200 + Math.random() * 150;
 
         const count = 2 + Math.floor(Math.random() * 2);
         const duration = 60 + Math.random() * 40;
@@ -101,77 +98,89 @@ export default function GlitchCursor() {
         if (now >= val.until) glitchState.current.delete(key);
       }
 
-      const overlay = overlayRef.current;
-      if (overlay) {
-        while (overlay.children.length < TRAIL_LENGTH) {
-          const orb = document.createElement("div");
-          orb.style.cssText =
-            "position:fixed;pointer-events:none;border-radius:50%;mix-blend-mode:screen;transform:translate(-50%,-50%);will-change:transform,left,top";
-          overlay.appendChild(orb);
-        }
+      // --- Canvas draw ---
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        for (let i = 0; i < TRAIL_LENGTH; i++) {
-          const orb = overlay.children[i] as HTMLElement;
+          for (let i = TRAIL_START; i < TRAIL_LENGTH; i++) {
+            const ratio = 1 - i / TRAIL_LENGTH;
+            const pt = pts[i];
+            const size = (1 + 5 * ratio) / 2; // radius
 
-          // Hide orbs close to the arrow tip
-          if (i < TRAIL_START) {
-            orb.style.opacity = "0";
-            continue;
+            let color: string;
+            if (ratio > 0.6) {
+              const t = (ratio - 0.6) / 0.4;
+              const r = Math.round(lerp(255, 0, t));
+              const g = Math.round(lerp(0, 255, t));
+              color = `rgb(${r},${g},255)`;
+            } else if (ratio > 0.25) {
+              const t = (ratio - 0.25) / 0.35;
+              const r = Math.round(lerp(168, 255, t));
+              const g = Math.round(lerp(85, 0, t));
+              const b = Math.round(lerp(247, 255, t));
+              color = `rgb(${r},${g},${b})`;
+            } else {
+              color = "#a855f7";
+            }
+
+            let opacity = ratio * 0.6;
+            let drawX = pt.x;
+            const drawY = pt.y;
+            let scaleX = 1;
+            let isScanline = false;
+
+            const gs = glitchState.current.get(i);
+            if (gs) {
+              color = gs.color;
+              opacity = gs.opacity;
+              drawX = pt.x + gs.offsetX;
+              scaleX = gs.scaleX;
+              isScanline = scaleX > 1;
+            }
+
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = size * 1.6;
+            ctx.fillStyle = color;
+
+            if (isScanline) {
+              // Draw a horizontal scanline rectangle
+              const w = size * 2 * scaleX;
+              const h = Math.max(1, size * 0.5);
+              ctx.fillRect(drawX - w / 2, drawY - h / 2, w, h);
+            } else {
+              ctx.beginPath();
+              ctx.arc(drawX, drawY, size, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            ctx.restore();
           }
-
-          const ratio = 1 - i / TRAIL_LENGTH;
-          const pt = pts[i];
-
-          const size = 1 + 5 * ratio;
-
-          let color: string;
-          if (ratio > 0.6) {
-            const t = (ratio - 0.6) / 0.4;
-            const r = Math.round(lerp(255, 0, t));
-            const g = Math.round(lerp(0, 255, t));
-            color = `rgb(${r},${g},255)`;
-          } else if (ratio > 0.25) {
-            const t = (ratio - 0.25) / 0.35;
-            const r = Math.round(lerp(168, 255, t));
-            const g = Math.round(lerp(85, 0, t));
-            const b = Math.round(lerp(247, 255, t));
-            color = `rgb(${r},${g},${b})`;
-          } else {
-            color = "#a855f7";
-          }
-
-          let opacity = ratio * 0.6;
-          const glowSize = size * 0.8;
-          let transformExtra = "";
-
-          const gs = glitchState.current.get(i);
-          if (gs) {
-            color = gs.color;
-            opacity = gs.opacity;
-            const tx = -50 + gs.offsetX;
-            transformExtra = `translate(${tx}%, -50%) scaleX(${gs.scaleX})`;
-          }
-
-          orb.style.left = `${pt.x}px`;
-          orb.style.top = `${pt.y}px`;
-          orb.style.width = `${size}px`;
-          orb.style.height = `${size}px`;
-          orb.style.opacity = `${opacity}`;
-          orb.style.background = color;
-          orb.style.boxShadow = `0 0 ${glowSize}px ${glowSize * 0.3}px ${color}`;
-          orb.style.filter = `blur(${(1 - ratio) * 0.8}px)`;
-          orb.style.transform = transformExtra || "translate(-50%,-50%)";
-          orb.style.borderRadius = gs?.scaleX && gs.scaleX > 1 ? "2px" : "50%";
         }
       }
 
       rafRef.current = requestAnimationFrame(animate);
     };
 
+    // Resize canvas to match window
+    const resizeCanvas = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+      }
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
     window.addEventListener("mousemove", onMouseMove);
     rafRef.current = requestAnimationFrame(animate);
 
     return () => {
+      window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("mousemove", onMouseMove);
       cancelAnimationFrame(rafRef.current);
     };
@@ -179,8 +188,8 @@ export default function GlitchCursor() {
 
   return (
     <>
-      <div
-        ref={overlayRef}
+      <canvas
+        ref={canvasRef}
         style={{
           position: "fixed",
           top: 0,
@@ -192,7 +201,7 @@ export default function GlitchCursor() {
         }}
       />
 
-      {/* Standard OS-style arrow cursor — no glow on the arrow itself */}
+      {/* Standard OS-style arrow cursor */}
       <div
         ref={cursorRef}
         style={{
@@ -201,6 +210,7 @@ export default function GlitchCursor() {
           zIndex: 10000,
           top: -200,
           left: -200,
+          willChange: "transform",
         }}
       >
         <svg

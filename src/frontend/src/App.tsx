@@ -7,22 +7,24 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
+import { Suspense, lazy } from "react";
 import CartDrawer from "./components/CartDrawer";
 import Footer from "./components/Footer";
 import GlitchCursor from "./components/GlitchCursor";
 import Navbar from "./components/Navbar";
 import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
-import AboutPage from "./pages/AboutPage";
-import AccountPage from "./pages/AccountPage";
-import AdminPage from "./pages/AdminPage";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import ContactPage from "./pages/ContactPage";
-import HomePage from "./pages/HomePage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import ProductListingPage from "./pages/ProductListingPage";
-import WishlistPage from "./pages/WishlistPage";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProductListingPage = lazy(() => import("./pages/ProductListingPage"));
+const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
+const WishlistPage = lazy(() => import("./pages/WishlistPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 
 function RootLayout() {
   return (
@@ -118,7 +120,9 @@ export default function App() {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <CartProvider>
         <WishlistProvider>
-          <RouterProvider router={router} />
+          <Suspense fallback={<div className="min-h-screen bg-background" />}>
+            <RouterProvider router={router} />
+          </Suspense>
         </WishlistProvider>
       </CartProvider>
     </ThemeProvider>

@@ -434,6 +434,7 @@ function HeroRightPanel() {
                 height: 260,
                 objectFit: "cover",
                 borderRadius: 20,
+                willChange: "opacity, transform",
               }}
             />
           </AnimatePresence>
@@ -446,6 +447,7 @@ function HeroRightPanel() {
                 borderRadius: 20,
                 pointerEvents: "none",
                 zIndex: 20,
+                willChange: "opacity",
               }}
             />
           )}
@@ -610,6 +612,7 @@ function HeroSection() {
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       className="relative min-h-screen flex items-center overflow-hidden scanline-overlay"
+      style={{ willChange: "transform" }}
     >
       {/* Aurora background blobs */}
       <div
