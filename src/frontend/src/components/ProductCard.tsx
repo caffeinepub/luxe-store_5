@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { Product } from "../backend.d";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
-import { getProductImage } from "../lib/imageUtils";
+import { getProductImageForColor } from "../lib/imageUtils";
 
 const STARS = [0, 1, 2, 3, 4];
 
@@ -16,10 +16,12 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
   const { addItem } = useCart();
   const { toggle, has } = useWishlist();
   const isWishlisted = has(product.id);
-  const image = getProductImage(product);
+  const displayColor = hoveredColor ?? product.colors[0];
+  const image = getProductImageForColor(product, displayColor);
   const discount = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100,
   );
@@ -32,7 +34,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       price: product.price,
       image,
       size: product.sizes[0] ?? "One Size",
-      color: product.colors[0] ?? "#000000",
+      color: displayColor ?? "#000000",
     });
   };
 
@@ -65,18 +67,18 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           }}
         >
           <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-            {/* Image — scales on hover like FeaturedCategories */}
+            {/* Image — reactive to color hover */}
             <img
               src={image}
               alt={product.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
               loading="lazy"
             />
 
             {/* Base gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-            {/* Cyan/magenta overlay on hover — same as FeaturedCategories */}
+            {/* Cyan/magenta overlay on hover */}
             <div
               className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
               style={{
@@ -85,7 +87,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               }}
             />
 
-            {/* Glowing inset border on hover — same as FeaturedCategories */}
+            {/* Glowing inset border on hover */}
             <div
               className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
               style={{
@@ -153,7 +155,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               />
             </motion.button>
 
-            {/* Quick Add button — appears instantly on hover */}
+            {/* Quick Add button */}
             <motion.button
               type="button"
               onClick={handleAddToCart}
@@ -197,13 +199,44 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               {product.title}
             </h3>
 
-            {/* Expanding gradient line — same as FeaturedCategories */}
+            {/* Expanding gradient line */}
             <div
               className="mt-1.5 h-[2px] w-8 rounded-full transition-all duration-300 group-hover:w-14"
               style={{
                 background: "linear-gradient(90deg, #00ffff, #ff00ff)",
               }}
             />
+
+            {/* Color swatches */}
+            {product.colors.length > 0 && (
+              <div
+                className="flex items-center gap-1.5 mt-2"
+                onMouseLeave={() => setHoveredColor(null)}
+              >
+                {product.colors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={color}
+                    onMouseEnter={(e) => {
+                      e.preventDefault();
+                      setHoveredColor(color);
+                    }}
+                    onClick={(e) => e.preventDefault()}
+                    className="w-4 h-4 rounded-full transition-all duration-150 flex-shrink-0"
+                    style={{
+                      backgroundColor: color,
+                      boxShadow:
+                        hoveredColor === color
+                          ? `0 0 0 2px #000, 0 0 0 3.5px ${color}, 0 0 8px ${color}88`
+                          : "0 0 0 1.5px rgba(255,255,255,0.25)",
+                      transform:
+                        hoveredColor === color ? "scale(1.3)" : "scale(1)",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
 
             <div className="flex items-center gap-1 mt-2">
               {STARS.map((starIdx) => (

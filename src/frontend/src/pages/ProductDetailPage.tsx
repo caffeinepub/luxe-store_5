@@ -16,7 +16,10 @@ import ProductCard from "../components/ProductCard";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useProduct, useProductReviews } from "../hooks/useQueries";
-import { getProductImage } from "../lib/imageUtils";
+import {
+  getProductColorGallery,
+  getProductImageForColor,
+} from "../lib/imageUtils";
 import { mockProducts } from "../lib/mockData";
 
 export default function ProductDetailPage() {
@@ -32,13 +35,15 @@ export default function ProductDetailPage() {
     product?.colors?.[0] ?? "",
   );
   const [qty, setQty] = useState(1);
-  const [selectedImg, setSelectedImg] = useState(0);
   const [stickyVisible, setStickyVisible] = useState(false);
   const productRef = useRef<HTMLDivElement>(null);
   const reviewsRef = useRef(null);
   const reviewsInView = useInView(reviewsRef, { once: true });
 
-  const image = product ? getProductImage(product) : "";
+  const colorGallery = product ? getProductColorGallery(product) : [];
+  const mainImage = product
+    ? getProductImageForColor(product, selectedColor)
+    : "";
   const relatedProducts = mockProducts
     .filter((p) => p.category === product?.category && p.id !== product?.id)
     .slice(0, 4);
@@ -59,7 +64,7 @@ export default function ProductDetailPage() {
       productId: product.id,
       title: product.title,
       price: product.price,
-      image,
+      image: mainImage,
       size: selectedSize,
       color: selectedColor,
       quantity: qty,
@@ -108,36 +113,55 @@ export default function ProductDetailPage() {
           {/* Gallery */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-card border border-border/50 group">
-              <motion.img
-                key={selectedImg}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                src={image}
-                alt={product.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={mainImage}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.35 }}
+                  src={mainImage}
+                  alt={product.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              </AnimatePresence>
               {product.isFlashSale && (
                 <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-500 text-white text-xs font-bold uppercase">
                   Flash Sale
                 </div>
               )}
             </div>
-            {/* Thumbnails */}
-            <div className="flex gap-3">
-              {[0, 1, 2, 3].map((i) => (
+
+            {/* Color variant thumbnails */}
+            <div className="flex gap-3 flex-wrap">
+              {colorGallery.map(({ color, image }) => (
                 <button
                   type="button"
-                  key={i}
-                  onClick={() => setSelectedImg(i)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedImg === i ? "border-luxe-cyan" : "border-border/50"
-                  }`}
+                  key={color}
+                  onClick={() => setSelectedColor(color)}
+                  className="relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200"
+                  style={{
+                    borderColor:
+                      selectedColor === color
+                        ? "#00ffff"
+                        : "rgba(255,255,255,0.15)",
+                    boxShadow:
+                      selectedColor === color
+                        ? "0 0 12px rgba(0,255,255,0.5)"
+                        : "none",
+                  }}
+                  aria-label={`Select color ${color}`}
+                  data-ocid="product.toggle"
                 >
                   <img
                     src={image}
-                    alt=""
+                    alt={color}
                     className="w-full h-full object-cover"
+                  />
+                  {/* Color dot badge */}
+                  <span
+                    className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border border-white/60 shadow"
+                    style={{ backgroundColor: color }}
                   />
                 </button>
               ))}
@@ -229,6 +253,12 @@ export default function ProductDetailPage() {
               <div>
                 <p className="text-sm font-semibold text-foreground mb-3 uppercase tracking-widest">
                   Color
+                  {selectedColor && (
+                    <span
+                      className="ml-2 inline-block w-3 h-3 rounded-full border border-white/40 align-middle"
+                      style={{ backgroundColor: selectedColor }}
+                    />
+                  )}
                 </p>
                 <div className="flex gap-3">
                   {product.colors.map((color) => (
@@ -236,12 +266,20 @@ export default function ProductDetailPage() {
                       type="button"
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        selectedColor === color
-                          ? "border-luxe-cyan scale-110"
-                          : "border-border/50"
-                      }`}
-                      style={{ backgroundColor: color }}
+                      className="relative w-8 h-8 rounded-full border-2 transition-all"
+                      style={{
+                        backgroundColor: color,
+                        borderColor:
+                          selectedColor === color
+                            ? "#00ffff"
+                            : "rgba(255,255,255,0.2)",
+                        boxShadow:
+                          selectedColor === color
+                            ? `0 0 0 2px #000, 0 0 0 4px #00ffff, 0 0 12px ${color}88`
+                            : "none",
+                        transform:
+                          selectedColor === color ? "scale(1.15)" : "scale(1)",
+                      }}
                       aria-label={color}
                       data-ocid="product.toggle"
                     />
