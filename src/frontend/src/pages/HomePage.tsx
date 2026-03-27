@@ -941,7 +941,7 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={sectionInView ? { opacity: 1, y: 0 } : {}}
@@ -975,7 +975,7 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
           </motion.a>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {trending.map((product, i) => (
             <TrendingCard
               key={product.id}
@@ -1014,14 +1014,14 @@ function TrendingCard({
   isWishlisted: boolean;
   onWishlistToggle: () => void;
 }) {
-  const { theme } = useTheme();
-  const isDark = theme !== "light";
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const isTop = index === 0;
+
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 80 }}
+      initial={{ opacity: 0, y: 60 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{
         type: "tween",
@@ -1029,44 +1029,68 @@ function TrendingCard({
         ease: "easeOut",
         delay: index * 0.08,
       }}
-      className="group rounded-2xl overflow-hidden border cursor-pointer transition-transform duration-200 hover:scale-[1.02] dark:hover:border-cyan-400/60 dark:hover:shadow-[0_0_0_1.5px_#00ffff,0_0_24px_rgba(0,255,255,0.3)]"
-      style={{
-        background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)",
-        borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-        boxShadow: isDark ? "none" : "0 2px 12px rgba(0,0,0,0.08)",
-        willChange: "transform",
-      }}
+      className="trending-card group rounded-2xl overflow-hidden cursor-pointer"
+      style={{ willChange: "transform" }}
       data-ocid={`trending.item.${index + 1}`}
     >
-      <div className="aspect-[4/5] overflow-hidden relative">
+      {/* Image area */}
+      <div className="relative" style={{ aspectRatio: "3/4" }}>
         <img
           src={getProductImage(product)}
           alt={product.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.06]"
+          className="trending-card-img w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
         />
+
+        {/* Bottom gradient scrim — always visible for legibility */}
         <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(135deg, rgba(0,255,255,0.15) 0%, rgba(168,85,247,0.1) 100%)",
+              "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 38%, transparent 70%)",
           }}
         />
-        <span
-          className="absolute top-3 left-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black"
-          style={{
-            background: "linear-gradient(135deg, #00ffff 0%, #a855f7 100%)",
-            boxShadow: "0 0 10px rgba(0,255,255,0.6)",
-            color: "#000",
-          }}
+
+        {/* Rank badge */}
+        <div
+          className="absolute top-3 left-3 flex items-center justify-center"
+          style={{ zIndex: 4 }}
         >
-          #{index + 1}
-        </span>
+          {isTop && (
+            <span
+              className="absolute rounded-full pointer-events-none"
+              style={{
+                width: 42,
+                height: 42,
+                border: "2px solid #00ffff",
+                borderRadius: "50%",
+                animation: "trendingPulse 1.8s ease-out infinite",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            />
+          )}
+          <span
+            className="relative z-10 px-2.5 py-0.5 rounded-full text-xs font-black"
+            style={{
+              background: "linear-gradient(135deg, #00ffff 0%, #ff00ff 100%)",
+              color: "#000",
+              boxShadow: "0 0 12px rgba(0,255,255,0.7)",
+              letterSpacing: "0.04em",
+            }}
+          >
+            #{index + 1}
+          </span>
+        </div>
+
+        {/* Wishlist button */}
         <button
           type="button"
           onClick={onWishlistToggle}
-          className="absolute top-3 right-3 p-1.5 rounded-full"
-          style={{ background: "rgba(0,0,0,0.45)" }}
+          className="absolute top-3 right-3 p-1.5 rounded-full transition-transform duration-150 hover:scale-110"
+          style={{ background: "rgba(0,0,0,0.5)", zIndex: 4 }}
           data-ocid={`trending.toggle.${index + 1}`}
         >
           <Heart
@@ -1076,52 +1100,66 @@ function TrendingCard({
             }
           />
         </button>
+
+        {/* TRENDING watermark — decorative, rotated on right edge */}
+        <span
+          className="absolute right-0 top-1/2 pointer-events-none select-none font-black uppercase tracking-[0.25em] text-white"
+          style={{
+            fontSize: 9,
+            opacity: 0.12,
+            transformOrigin: "right center",
+            transform: "translateY(-50%) rotate(90deg) translateX(50%)",
+            zIndex: 2,
+          }}
+        >
+          TRENDING
+        </span>
+
+        {/* Hover overlay panel — slides up from bottom via pure CSS */}
+        <div
+          className="trending-card-overlay absolute bottom-0 left-0 right-0 px-4 pt-3 pb-4"
+          style={{ zIndex: 5 }}
+        >
+          <p className="text-xs text-cyan-300 font-semibold uppercase tracking-wider mb-1">
+            {product.category}
+          </p>
+          <p className="font-bold text-white text-sm leading-snug line-clamp-2 mb-1">
+            {product.title}
+          </p>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="font-black text-cyan-300 text-base">
+              ${product.price.toFixed(2)}
+            </span>
+            {product.originalPrice > product.price && (
+              <span className="text-xs text-white/50 line-through">
+                ${product.originalPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.92 }}
+            onClick={onAddToCart}
+            className="trending-add-btn w-full py-2.5 rounded-xl text-xs font-bold text-white"
+            style={{
+              background: "linear-gradient(135deg, #00cccc 0%, #a855f7 100%)",
+              boxShadow: "0 0 16px rgba(0,200,200,0.35)",
+            }}
+            data-ocid={`trending.submit_button.${index + 1}`}
+          >
+            Add to Cart
+          </motion.button>
+        </div>
       </div>
 
-      <div className="p-3">
-        <p className="text-xs text-luxe-cyan font-semibold uppercase tracking-wider mb-1">
-          {product.category}
-        </p>
-        <p className="font-bold text-foreground line-clamp-1 text-base">
-          {product.title}
-        </p>
-        <div
-          className="mt-2 h-[2px] w-10 rounded-full transition-all duration-300 group-hover:w-16"
-          style={{ background: "linear-gradient(90deg, #00ffff, #ff00ff)" }}
-        />
-        <p
-          className="mt-1 text-xs font-semibold uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-          style={{ color: isDark ? "#d8b4fe" : "#7c3aed" }}
-        >
-          Shop Now →
-        </p>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="font-bold text-luxe-cyan text-base">
-            ${product.price.toFixed(2)}
-          </span>
-          {product.originalPrice > product.price && (
-            <span className="text-xs text-muted-foreground line-through">
-              ${product.originalPrice.toFixed(2)}
-            </span>
-          )}
-        </div>
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.88 }}
-          onClick={onAddToCart}
-          className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all duration-300"
-          style={{
-            background: isDark
-              ? "rgba(0,255,255,0.08)"
-              : "linear-gradient(135deg, #00cccc 0%, #a855f7 100%)",
-            border: isDark ? "1px solid rgba(0,255,255,0.3)" : "none",
-            color: isDark ? "#00ffff" : "#fff",
-            boxShadow: isDark ? "none" : "0 2px 12px rgba(0,200,200,0.3)",
-          }}
-          data-ocid={`trending.submit_button.${index + 1}`}
-        >
-          Add to Cart
-        </motion.button>
+      {/* Minimal info bar below image */}
+      <div className="trending-card-meta px-3 py-2.5 flex items-center justify-between">
+        <span className="text-xs font-semibold" style={{ color: "#00ffff" }}>
+          ${product.price.toFixed(2)}
+        </span>
+        <span className="text-xs text-muted-foreground font-medium">
+          Rank #{index + 1}
+        </span>
       </div>
     </motion.div>
   );
