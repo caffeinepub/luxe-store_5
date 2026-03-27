@@ -975,7 +975,7 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
           </motion.a>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {trending.map((product, i) => (
             <TrendingCard
               key={product.id}
@@ -1018,44 +1018,31 @@ function TrendingCard({
   const isDark = theme !== "light";
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
-  const [hovered, setHovered] = useState(false);
-
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 80 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{
-        type: "spring",
-        stiffness: 260,
-        damping: 24,
-        delay: index * 0.1,
+        type: "tween",
+        duration: 0.5,
+        ease: "easeOut",
+        delay: index * 0.08,
       }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      whileHover={{ scale: 1.03 }}
-      className="group rounded-2xl overflow-hidden border cursor-pointer"
+      className="group rounded-2xl overflow-hidden border cursor-pointer transition-transform duration-200 hover:scale-[1.02] dark:hover:border-cyan-400/60 dark:hover:shadow-[0_0_0_1.5px_#00ffff,0_0_24px_rgba(0,255,255,0.3)]"
       style={{
         background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)",
-        borderColor: hovered
-          ? "rgba(0,255,255,0.6)"
-          : isDark
-            ? "rgba(255,255,255,0.1)"
-            : "rgba(0,0,0,0.1)",
-        boxShadow: hovered
-          ? "0 0 0 1.5px #00ffff, 0 0 24px rgba(0,255,255,0.3)"
-          : isDark
-            ? "none"
-            : "0 2px 12px rgba(0,0,0,0.08)",
-        transition: "box-shadow 0.3s ease, border-color 0.3s ease",
+        borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+        boxShadow: isDark ? "none" : "0 2px 12px rgba(0,0,0,0.08)",
+        willChange: "transform",
       }}
       data-ocid={`trending.item.${index + 1}`}
     >
-      <div className="aspect-[3/4] overflow-hidden relative">
+      <div className="aspect-[4/5] overflow-hidden relative">
         <img
           src={getProductImage(product)}
           alt={product.title}
-          className="w-full h-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.12]"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.06]"
           loading="lazy"
         />
         <div
@@ -1066,7 +1053,7 @@ function TrendingCard({
           }}
         />
         <span
-          className="absolute top-3 left-3 w-8 h-8 flex items-center justify-center rounded-full text-xs font-black"
+          className="absolute top-3 left-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black"
           style={{
             background: "linear-gradient(135deg, #00ffff 0%, #a855f7 100%)",
             boxShadow: "0 0 10px rgba(0,255,255,0.6)",
@@ -1078,7 +1065,7 @@ function TrendingCard({
         <button
           type="button"
           onClick={onWishlistToggle}
-          className="absolute top-3 right-3 p-2 rounded-full"
+          className="absolute top-3 right-3 p-1.5 rounded-full"
           style={{ background: "rgba(0,0,0,0.45)" }}
           data-ocid={`trending.toggle.${index + 1}`}
         >
@@ -1091,7 +1078,7 @@ function TrendingCard({
         </button>
       </div>
 
-      <div className="p-4">
+      <div className="p-3">
         <p className="text-xs text-luxe-cyan font-semibold uppercase tracking-wider mb-1">
           {product.category}
         </p>
@@ -1109,7 +1096,7 @@ function TrendingCard({
           Shop Now →
         </p>
         <div className="flex items-center gap-2 mt-2">
-          <span className="font-bold text-luxe-cyan text-lg">
+          <span className="font-bold text-luxe-cyan text-base">
             ${product.price.toFixed(2)}
           </span>
           {product.originalPrice > product.price && (
@@ -1122,7 +1109,7 @@ function TrendingCard({
           type="button"
           whileTap={{ scale: 0.88 }}
           onClick={onAddToCart}
-          className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
+          className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all duration-300"
           style={{
             background: isDark
               ? "rgba(0,255,255,0.08)"
