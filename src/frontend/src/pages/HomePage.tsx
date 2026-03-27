@@ -975,7 +975,7 @@ function TrendingSection({ products }: { products: typeof mockProducts }) {
           </motion.a>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {trending.map((product, i) => (
             <TrendingCard
               key={product.id}
@@ -1015,151 +1015,103 @@ function TrendingCard({
   onWishlistToggle: () => void;
 }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  const isTop = index === 0;
+  const inView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 60 }}
+      initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{
         type: "tween",
-        duration: 0.5,
+        duration: 0.42,
         ease: "easeOut",
-        delay: index * 0.08,
+        delay: index * 0.06,
       }}
-      className="trending-card group rounded-2xl overflow-hidden cursor-pointer"
-      style={{ willChange: "transform" }}
+      className="tc-card rounded-xl cursor-pointer"
       data-ocid={`trending.item.${index + 1}`}
     >
-      {/* Image area */}
-      <div className="relative" style={{ aspectRatio: "3/4" }}>
-        <img
-          src={getProductImage(product)}
-          alt={product.title}
-          className="trending-card-img w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
-
-        {/* Bottom gradient scrim — always visible for legibility */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 38%, transparent 70%)",
-          }}
-        />
-
-        {/* Rank badge */}
-        <div
-          className="absolute top-3 left-3 flex items-center justify-center"
-          style={{ zIndex: 4 }}
-        >
-          {isTop && (
-            <span
-              className="absolute rounded-full pointer-events-none"
-              style={{
-                width: 42,
-                height: 42,
-                border: "2px solid #00ffff",
-                borderRadius: "50%",
-                animation: "trendingPulse 1.8s ease-out infinite",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-            />
-          )}
-          <span
-            className="relative z-10 px-2.5 py-0.5 rounded-full text-xs font-black"
-            style={{
-              background: "linear-gradient(135deg, #00ffff 0%, #ff00ff 100%)",
-              color: "#000",
-              boxShadow: "0 0 12px rgba(0,255,255,0.7)",
-              letterSpacing: "0.04em",
-            }}
-          >
-            #{index + 1}
-          </span>
-        </div>
-
-        {/* Wishlist button */}
-        <button
-          type="button"
-          onClick={onWishlistToggle}
-          className="absolute top-3 right-3 p-1.5 rounded-full transition-transform duration-150 hover:scale-110"
-          style={{ background: "rgba(0,0,0,0.5)", zIndex: 4 }}
-          data-ocid={`trending.toggle.${index + 1}`}
-        >
-          <Heart
-            size={14}
-            className={
-              isWishlisted ? "fill-red-500 text-red-500" : "text-white"
-            }
-          />
-        </button>
-
-        {/* TRENDING watermark — decorative, rotated on right edge */}
+      {/* Rank + Image */}
+      <div className="flex items-center gap-3 p-3">
+        {/* Rank */}
         <span
-          className="absolute right-0 top-1/2 pointer-events-none select-none font-black uppercase tracking-[0.25em] text-white"
+          className="shrink-0 w-6 text-center text-xs font-black"
           style={{
-            fontSize: 9,
-            opacity: 0.12,
-            transformOrigin: "right center",
-            transform: "translateY(-50%) rotate(90deg) translateX(50%)",
-            zIndex: 2,
+            background: "linear-gradient(135deg, #00cccc 0%, #a855f7 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
           }}
         >
-          TRENDING
+          {index + 1}
         </span>
 
-        {/* Hover overlay panel — slides up from bottom via pure CSS */}
-        <div
-          className="trending-card-overlay absolute bottom-0 left-0 right-0 px-4 pt-3 pb-4"
-          style={{ zIndex: 5 }}
-        >
-          <p className="text-xs text-cyan-300 font-semibold uppercase tracking-wider mb-1">
+        {/* Image */}
+        <div className="shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden">
+          <img
+            src={getProductImage(product)}
+            alt={product.title}
+            className="tc-img w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        {/* Text content */}
+        <div className="flex-1 min-w-0">
+          <span
+            className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mb-1"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0,204,204,0.18) 0%, rgba(168,85,247,0.18) 100%)",
+              color: "#00cccc",
+              border: "1px solid rgba(0,204,204,0.25)",
+            }}
+          >
             {product.category}
-          </p>
-          <p className="font-bold text-white text-sm leading-snug line-clamp-2 mb-1">
+          </span>
+          <p className="font-semibold text-sm leading-snug line-clamp-1 text-foreground">
             {product.title}
           </p>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="font-black text-cyan-300 text-base">
-              ${product.price.toFixed(2)}
+          <span className="text-xs font-black" style={{ color: "#00cccc" }}>
+            ${product.price.toFixed(2)}
+          </span>
+          {product.originalPrice > product.price && (
+            <span className="text-xs text-muted-foreground line-through ml-1.5">
+              ${product.originalPrice.toFixed(2)}
             </span>
-            {product.originalPrice > product.price && (
-              <span className="text-xs text-white/50 line-through">
-                ${product.originalPrice.toFixed(2)}
-              </span>
-            )}
-          </div>
-          <motion.button
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="shrink-0 flex flex-col items-end gap-2">
+          <button
             type="button"
-            whileTap={{ scale: 0.92 }}
+            onClick={onWishlistToggle}
+            className="p-1.5 rounded-full transition-transform duration-150 hover:scale-110"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+            data-ocid={`trending.toggle.${index + 1}`}
+          >
+            <Heart
+              size={13}
+              className={
+                isWishlisted
+                  ? "fill-red-500 text-red-500"
+                  : "text-muted-foreground"
+              }
+            />
+          </button>
+          <button
+            type="button"
             onClick={onAddToCart}
-            className="trending-add-btn w-full py-2.5 rounded-xl text-xs font-bold text-white"
+            className="px-3 py-1.5 text-xs font-bold rounded-full text-white whitespace-nowrap"
             style={{
               background: "linear-gradient(135deg, #00cccc 0%, #a855f7 100%)",
-              boxShadow: "0 0 16px rgba(0,200,200,0.35)",
             }}
             data-ocid={`trending.submit_button.${index + 1}`}
           >
-            Add to Cart
-          </motion.button>
+            Add
+          </button>
         </div>
-      </div>
-
-      {/* Minimal info bar below image */}
-      <div className="trending-card-meta px-3 py-2.5 flex items-center justify-between">
-        <span className="text-xs font-semibold" style={{ color: "#00ffff" }}>
-          ${product.price.toFixed(2)}
-        </span>
-        <span className="text-xs text-muted-foreground font-medium">
-          Rank #{index + 1}
-        </span>
       </div>
     </motion.div>
   );
