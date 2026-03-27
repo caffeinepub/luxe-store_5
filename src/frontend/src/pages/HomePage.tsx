@@ -299,7 +299,7 @@ function HeroRightPanel() {
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(0,255,255,0.45) 0%, transparent 70%)",
-          filter: "blur(40px)",
+          filter: "blur(20px)",
         }}
       />
       <div
@@ -312,7 +312,7 @@ function HeroRightPanel() {
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(255,0,255,0.45) 0%, transparent 70%)",
-          filter: "blur(32px)",
+          filter: "blur(20px)",
         }}
       />
       {/* Glowing platform disc - CSS animated */}
@@ -324,7 +324,6 @@ function HeroRightPanel() {
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(0,255,255,0.3) 0%, rgba(255,0,255,0.18) 40%, transparent 70%)",
-          filter: "blur(6px)",
           left: "50%",
           top: "50%",
           transform: "translate(-50%, -50%)",
@@ -369,8 +368,7 @@ function HeroRightPanel() {
         style={{
           position: "relative",
           zIndex: 10,
-          filter: "drop-shadow(0 30px 60px rgba(168,85,247,0.45))",
-          animation: "float 4s ease-in-out infinite",
+          animation: "float 5s ease-in-out infinite",
           willChange: "transform",
         }}
       >
@@ -442,7 +440,7 @@ function HeroRightPanel() {
             position: "absolute",
             ...card.style,
             zIndex: 15,
-            animation: `float 3s ease-in-out ${card.delay}s infinite`,
+            animation: `float 5s ease-in-out ${card.delay}s infinite`,
             willChange: "transform",
           }}
         >
@@ -450,10 +448,9 @@ function HeroRightPanel() {
             style={{
               width: 112,
               background: isDark
-                ? "rgba(255,255,255,0.1)"
-                : "rgba(255,255,255,0.85)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
+                ? "rgba(15,5,30,0.85)"
+                : "rgba(255,255,255,0.9)",
+
               border: isDark
                 ? "1px solid rgba(255,255,255,0.2)"
                 : "1px solid rgba(0,0,0,0.12)",
@@ -585,7 +582,7 @@ function HeroSection() {
                 stiffness: 300,
                 damping: 20,
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-luxe-cyan/40 text-luxe-cyan text-xs font-semibold uppercase tracking-widest mb-6 neon-pulse"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-luxe-cyan/40 text-luxe-cyan text-xs font-semibold uppercase tracking-widest mb-6"
             >
               <Zap size={12} className="fill-luxe-cyan" />
               New Collection 2026
