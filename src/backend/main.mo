@@ -108,6 +108,310 @@ actor {
   let coupons = Map.empty<Text, Nat>();
   let userProfiles = Map.empty<Principal, UserProfile>();
 
+  // ======================= SEED PRODUCTS =======================
+  let seedProducts : [Product] = [
+    {
+      id = "prod-001";
+      title = "LUXE Air Max Pro";
+      description = "Premium cyberpunk-inspired running shoes with advanced cushioning technology and neon accents. Perfect for athletes who demand both style and performance.";
+      price = 189.99;
+      originalPrice = 249.99;
+      category = "Footwear";
+      rating = 4.8;
+      reviewCount = 342;
+      sizes = ["6", "7", "8", "9", "10", "11", "12"];
+      colors = ["Black", "Cyan", "White"];
+      images = [
+        "/assets/generated/product-airmax-black.dim_600x600.jpg",
+        "/assets/generated/product-airmax-cyan.dim_600x600.jpg",
+        "/assets/generated/product-airmax-white.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = true;
+      stock = 45;
+    },
+    {
+      id = "prod-002";
+      title = "Phantom Running Elite";
+      description = "High-performance running shoes engineered for speed and endurance. Lightweight construction with reactive foam sole technology.";
+      price = 159.99;
+      originalPrice = 199.99;
+      category = "Footwear";
+      rating = 4.7;
+      reviewCount = 218;
+      sizes = ["6", "7", "8", "9", "10", "11"];
+      colors = ["Black", "Orange", "Teal"];
+      images = [
+        "/assets/generated/product-running-black.dim_600x600.jpg",
+        "/assets/generated/product-running-orange.dim_600x600.jpg",
+        "/assets/generated/product-running-teal.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = false;
+      stock = 32;
+    },
+    {
+      id = "prod-003";
+      title = "LUXE Urban Sneaker";
+      description = "Street-ready sneakers blending retro aesthetics with modern comfort. Features premium leather upper and memory foam insole.";
+      price = 129.99;
+      originalPrice = 169.99;
+      category = "Footwear";
+      rating = 4.6;
+      reviewCount = 567;
+      sizes = ["5", "6", "7", "8", "9", "10", "11", "12"];
+      colors = ["Black", "White", "Brown"];
+      images = [
+        "/assets/generated/product-sneaker-black.dim_600x600.jpg",
+        "/assets/generated/product-sneaker-white.dim_600x600.jpg",
+        "/assets/generated/product-sneaker-brown.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = true;
+      stock = 78;
+    },
+    {
+      id = "prod-004";
+      title = "NeoChron Smartwatch";
+      description = "Next-generation smartwatch with holographic display, health monitoring, and 7-day battery life. Your cyberpunk wrist companion.";
+      price = 449.99;
+      originalPrice = 599.99;
+      category = "Electronics";
+      rating = 4.9;
+      reviewCount = 189;
+      sizes = ["One Size"];
+      colors = ["Black", "Gold", "Silver"];
+      images = [
+        "/assets/generated/product-watch-black.dim_600x600.jpg",
+        "/assets/generated/product-watch-gold.dim_600x600.jpg",
+        "/assets/generated/product-watch-silver.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = true;
+      stock = 23;
+    },
+    {
+      id = "prod-005";
+      title = "SoundSphere Pro Headphones";
+      description = "Audiophile-grade wireless headphones with active noise cancellation and 40-hour playtime. Crystal-clear sound meets futuristic design.";
+      price = 299.99;
+      originalPrice = 399.99;
+      category = "Electronics";
+      rating = 4.8;
+      reviewCount = 412;
+      sizes = ["One Size"];
+      colors = ["Black", "Silver", "Brown"];
+      images = [
+        "/assets/generated/product-headphones-black.dim_600x600.jpg",
+        "/assets/generated/product-headphones-silver.dim_600x600.jpg",
+        "/assets/generated/product-headphones-brown.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = false;
+      stock = 56;
+    },
+    {
+      id = "prod-006";
+      title = "CyberLux Laptop";
+      description = "Ultra-thin performance laptop with OLED display, 32GB RAM, and all-day battery. Designed for creatives and professionals.";
+      price = 1299.99;
+      originalPrice = 1599.99;
+      category = "Electronics";
+      rating = 4.7;
+      reviewCount = 98;
+      sizes = ["One Size"];
+      colors = ["Black"];
+      images = [
+        "/assets/generated/product-laptop.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = true;
+      stock = 12;
+    },
+    {
+      id = "prod-007";
+      title = "UltraView Monitor 4K";
+      description = "32-inch 4K gaming monitor with 144Hz refresh rate, HDR support, and RGB edge lighting. Immerse yourself in every frame.";
+      price = 549.99;
+      originalPrice = 699.99;
+      category = "Electronics";
+      rating = 4.6;
+      reviewCount = 145;
+      sizes = ["32 inch"];
+      colors = ["Black"];
+      images = [
+        "/assets/generated/product-monitor-black.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = false;
+      stock = 18;
+    },
+    {
+      id = "prod-008";
+      title = "NeoWave Jacket";
+      description = "Premium cyberpunk-inspired jacket with reflective panels and smart pocket design. Water-resistant shell for urban adventurers.";
+      price = 219.99;
+      originalPrice = 289.99;
+      category = "Clothing";
+      rating = 4.7;
+      reviewCount = 234;
+      sizes = ["XS", "S", "M", "L", "XL", "XXL"];
+      colors = ["Black", "Navy", "Brown"];
+      images = [
+        "/assets/generated/product-jacket-black.dim_600x600.jpg",
+        "/assets/generated/product-jacket-navy.dim_600x600.jpg",
+        "/assets/generated/product-jacket-brown.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = false;
+      stock = 67;
+    },
+    {
+      id = "prod-009";
+      title = "FlexCore Yoga Set";
+      description = "High-performance yoga and fitness wear made from sustainable fabric. 4-way stretch with moisture-wicking technology.";
+      price = 89.99;
+      originalPrice = 119.99;
+      category = "Clothing";
+      rating = 4.5;
+      reviewCount = 389;
+      sizes = ["XS", "S", "M", "L", "XL"];
+      colors = ["Black", "Red", "Teal"];
+      images = [
+        "/assets/generated/product-yoga-black.dim_600x600.jpg",
+        "/assets/generated/product-yoga-red.dim_600x600.jpg",
+        "/assets/generated/product-yoga-teal.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = true;
+      stock = 112;
+    },
+    {
+      id = "prod-010";
+      title = "LuminaGlow Skincare Set";
+      description = "Advanced skincare collection with neuropeptide technology and vitamin C complex. Clinically proven to reduce signs of aging in 4 weeks.";
+      price = 149.99;
+      originalPrice = 199.99;
+      category = "Beauty";
+      rating = 4.8;
+      reviewCount = 621;
+      sizes = ["One Size"];
+      colors = ["Default"];
+      images = [
+        "/assets/generated/product-skincare.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = true;
+      stock = 89;
+    },
+    {
+      id = "prod-011";
+      title = "GlowLux Foundation";
+      description = "Full-coverage foundation with SPF 30 and 24-hour wear technology. Available in 30 inclusive shades for all skin tones.";
+      price = 49.99;
+      originalPrice = 64.99;
+      category = "Beauty";
+      rating = 4.6;
+      reviewCount = 843;
+      sizes = ["One Size"];
+      colors = ["Light", "Medium", "Deep"];
+      images = [
+        "/assets/generated/product-foundation-light.dim_600x600.jpg",
+        "/assets/generated/product-foundation-medium.dim_600x600.jpg",
+        "/assets/generated/product-foundation-deep.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = false;
+      stock = 203;
+    },
+    {
+      id = "prod-012";
+      title = "NeoLux Beauty Kit";
+      description = "Complete beauty kit with highlighter, contour, and blush palette. Professional-grade pigments for long-lasting looks.";
+      price = 79.99;
+      originalPrice = 109.99;
+      category = "Beauty";
+      rating = 4.7;
+      reviewCount = 478;
+      sizes = ["One Size"];
+      colors = ["Gold", "Pink", "White"];
+      images = [
+        "/assets/generated/product-beauty-gold.dim_600x600.jpg",
+        "/assets/generated/product-beauty-pink.dim_600x600.jpg",
+        "/assets/generated/product-beauty-white.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = false;
+      stock = 134;
+    },
+    {
+      id = "prod-013";
+      title = "Apex Sofa Collection";
+      description = "Luxurious modular sofa with premium Italian leather and built-in USB charging ports. The centerpiece your living room deserves.";
+      price = 1899.99;
+      originalPrice = 2499.99;
+      category = "Home";
+      rating = 4.9;
+      reviewCount = 67;
+      sizes = ["2-Seater", "3-Seater", "L-Shape"];
+      colors = ["Black", "Tan", "Teal"];
+      images = [
+        "/assets/generated/product-sofa-black.dim_600x600.jpg",
+        "/assets/generated/product-sofa-tan.dim_600x600.jpg",
+        "/assets/generated/product-sofa-teal.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = true;
+      stock = 8;
+    },
+    {
+      id = "prod-014";
+      title = "ArcLight Designer Lamp";
+      description = "Sculptural floor lamp with adjustable color temperature and smart home integration. Illuminate your space with artistic flair.";
+      price = 279.99;
+      originalPrice = 349.99;
+      category = "Home";
+      rating = 4.6;
+      reviewCount = 156;
+      sizes = ["One Size"];
+      colors = ["Black", "Gold", "White"];
+      images = [
+        "/assets/generated/product-lamp-black.dim_600x600.jpg",
+        "/assets/generated/product-lamp-gold.dim_600x600.jpg",
+        "/assets/generated/product-lamp-white.dim_600x600.jpg"
+      ];
+      isTrending = false;
+      isFlashSale = false;
+      stock = 41;
+    },
+    {
+      id = "prod-015";
+      title = "PowerCore Fitness Gear";
+      description = "Complete home fitness kit including resistance bands, foam roller, and training guide. Build your ideal physique anywhere.";
+      price = 119.99;
+      originalPrice = 159.99;
+      category = "Sports";
+      rating = 4.5;
+      reviewCount = 312;
+      sizes = ["One Size"];
+      colors = ["Default"];
+      images = [
+        "/assets/generated/product-fitness.dim_600x600.jpg"
+      ];
+      isTrending = true;
+      isFlashSale = true;
+      stock = 94;
+    }
+  ];
+
+  // Seed products into the map on canister init
+  for (p in seedProducts.vals()) {
+    products.add(p.id, p);
+  };
+
+  // Seed coupon
+  coupons.add("LUXE20", 20);
+
   // ======================= AUTHORIZATION SYSTEM =======================
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -140,6 +444,13 @@ actor {
       Runtime.trap("Unauthorized: Only admins can create or update products");
     };
     products.add(product.id, product);
+  };
+
+  public shared ({ caller }) func deleteProduct(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete products");
+    };
+    products.remove(id);
   };
 
   public query func getProduct(id : Text) : async Product {
@@ -265,7 +576,7 @@ actor {
       id = orderId;
       userId = caller;
       items = cartItems;
-      total = 0; // For simplicity, total is 0
+      total = 0;
       shippingAddress;
       status = #pending;
     };
