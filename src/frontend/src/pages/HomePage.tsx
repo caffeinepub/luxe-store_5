@@ -21,7 +21,7 @@ import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useAllProducts } from "../hooks/useQueries";
 import { CATEGORY_LIST, getProductImage } from "../lib/imageUtils";
-import { mockProducts, testimonials } from "../lib/mockData";
+import { type mockProducts, testimonials } from "../lib/mockData";
 
 // ─── Scroll Progress Bar ───────────────────────────────────────────────────────
 function ScrollProgressBar() {
@@ -1479,7 +1479,7 @@ function BrandsSection() {
 // ─── Page Root ───────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { data: backendProducts } = useAllProducts();
-  const products = backendProducts?.length ? backendProducts : mockProducts;
+  const products = backendProducts ?? [];
 
   return (
     <div>

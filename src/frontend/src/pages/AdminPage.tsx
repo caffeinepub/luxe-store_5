@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Loader2, Pencil, Plus, ShieldAlert, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
@@ -360,6 +361,7 @@ export default function AdminPage() {
   const { data: products, isLoading: productsLoading } = useAllProducts();
   const mutation = useCreateOrUpdateProduct();
   const claimAdmin = useClaimAdmin();
+  const queryClient = useQueryClient();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | undefined>();
@@ -387,6 +389,8 @@ export default function AdminPage() {
   const handleClaimAdmin = async () => {
     try {
       await claimAdmin.mutateAsync(adminToken);
+      queryClient.setQueryData(["isAdmin"], true);
+      queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
       toast.success("Admin access granted!");
       setAdminToken("");
     } catch {

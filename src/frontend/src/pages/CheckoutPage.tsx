@@ -9,8 +9,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "../contexts/CartContext";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useCreateOrder } from "../hooks/useQueries";
 import { getProductImage } from "../lib/imageUtils";
-import { mockProducts } from "../lib/mockData";
 
 const STEPS = [
   { id: 1, label: "Shipping", icon: MapPin },
@@ -68,6 +69,9 @@ function StepIndicator({ current }: { current: number }) {
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
+  const createOrder = useCreateOrder();
+  const { identity } = useInternetIdentity();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [step, setStep] = useState(1);
   const [shipping, setShipping] = useState({
     name: "",
@@ -92,12 +96,25 @@ export default function CheckoutPage() {
     { key: "country", label: "Country", placeholder: "United States" },
   ];
 
-  const handlePlaceOrder = () => {
-    setOrderPlaced(true);
-    clearCart();
-    toast.success("Order placed successfully!", {
-      description: "You'll receive a confirmation email shortly.",
-    });
+  const handlePlaceOrder = async () => {
+    if (isPlacingOrder) return;
+    setIsPlacingOrder(true);
+    try {
+      const orderId = crypto.randomUUID();
+      const shippingAddress = JSON.stringify(shipping);
+      if (identity) {
+        await createOrder.mutateAsync({ orderId, shippingAddress });
+      }
+      setOrderPlaced(true);
+      clearCart();
+      toast.success("Order placed successfully!", {
+        description: "Your order will arrive in 3-5 business days.",
+      });
+    } catch {
+      toast.error("Failed to place order. Please try again.");
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   if (orderPlaced) {
@@ -336,10 +353,18 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={handlePlaceOrder}
-                      className="flex-1 btn-primary"
+                      disabled={isPlacingOrder}
+                      className="flex-1 btn-primary flex items-center justify-center gap-2"
                       data-ocid="checkout.submit_button"
                     >
-                      Place Order
+                      {isPlacingOrder ? (
+                        <>
+                          <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        "Place Order"
+                      )}
                     </button>
                   </div>
                 </motion.div>

@@ -1,23 +1,69 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Heart, LogIn, LogOut, Package, Settings, User } from "lucide-react";
+import { Heart, Loader2, LogIn, LogOut, Package, User } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { Variant_shipped_pending_delivered_processing } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import {
+  useSaveUserProfile,
+  useUserOrders,
+  useUserProfile,
+} from "../hooks/useQueries";
+
+function StatusBadge({
+  status,
+}: { status: Variant_shipped_pending_delivered_processing }) {
+  const colors: Record<string, string> = {
+    pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    processing: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    shipped: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    delivered: "bg-green-500/20 text-green-400 border-green-500/30",
+  };
+  const label = String(status);
+  return (
+    <span
+      className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${colors[label] ?? "bg-muted text-muted-foreground"}`}
+    >
+      {label}
+    </span>
+  );
+}
 
 export default function AccountPage() {
   const { login, clear, loginStatus, identity, isLoggingIn } =
     useInternetIdentity();
   const isLoggedIn = loginStatus === "success" && !!identity;
-  const principal = identity?.getPrincipal().toString();
+  const principal = identity?.getPrincipal();
+  const principalStr = principal?.toString();
+
+  const { data: profile, isLoading: profileLoading } = useUserProfile();
+  const saveProfile = useSaveUserProfile();
+  const { data: orders = [], isLoading: ordersLoading } =
+    useUserOrders(principal);
+
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
 
-  const handleSaveProfile = () => {
-    toast.success("Profile saved!");
+  // Pre-fill from backend profile
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.displayName ?? "");
+      setEmail(profile.email ?? "");
+    }
+  }, [profile]);
+
+  const handleSaveProfile = async () => {
+    try {
+      await saveProfile.mutateAsync({ displayName, email });
+      toast.success("Profile saved!");
+    } catch {
+      toast.error("Failed to save profile");
+    }
   };
 
   if (!isLoggedIn) {
@@ -35,10 +81,10 @@ export default function AccountPage() {
                 <User size={28} className="text-luxe-cyan" />
               </div>
               <h1 className="font-display text-3xl font-black text-foreground">
-                Welcome Back
+                Welcome to LUXE
               </h1>
               <p className="text-muted-foreground mt-1">
-                Sign in to access your account
+                Sign in or create an account to continue
               </p>
             </div>
 
@@ -61,10 +107,14 @@ export default function AccountPage() {
               </TabsList>
               <TabsContent value="login">
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    We use Internet Identity for secure, passwordless
-                    authentication.
-                  </p>
+                  <div className="rounded-xl bg-luxe-cyan/5 border border-luxe-cyan/20 p-4">
+                    <p className="text-sm text-foreground/80 text-center font-medium">
+                      Sign in with your existing Internet Identity
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      Secure, passwordless authentication — no email required
+                    </p>
+                  </div>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -74,19 +124,27 @@ export default function AccountPage() {
                     data-ocid="account.primary_button"
                   >
                     {isLoggingIn ? (
-                      <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                      <Loader2 size={18} className="animate-spin" />
                     ) : (
                       <LogIn size={18} />
                     )}
-                    {isLoggingIn ? "Signing in..." : "Sign In"}
+                    {isLoggingIn
+                      ? "Signing in..."
+                      : "Sign In with Internet Identity"}
                   </motion.button>
                 </div>
               </TabsContent>
               <TabsContent value="signup">
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    Create a new Internet Identity to get started.
-                  </p>
+                  <div className="rounded-xl bg-luxe-magenta/5 border border-luxe-magenta/20 p-4">
+                    <p className="text-sm text-foreground/80 text-center font-medium">
+                      Create a new Internet Identity — this acts as your account
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      Your identity is cryptographically secured and fully
+                      private
+                    </p>
+                  </div>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -95,7 +153,12 @@ export default function AccountPage() {
                     className="w-full btn-primary flex items-center justify-center gap-2"
                     data-ocid="account.primary_button"
                   >
-                    Create Account
+                    {isLoggingIn ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <User size={18} />
+                    )}
+                    {isLoggingIn ? "Creating..." : "Create New Account"}
                   </motion.button>
                 </div>
               </TabsContent>
@@ -118,7 +181,7 @@ export default function AccountPage() {
             My Account
           </h1>
           <p className="text-muted-foreground mt-1 font-mono text-xs">
-            {principal}
+            {principalStr}
           </p>
         </motion.div>
 
@@ -155,68 +218,117 @@ export default function AccountPage() {
               <h2 className="font-display text-xl font-bold text-foreground">
                 Profile Settings
               </h2>
-              <div>
-                <label
-                  htmlFor="acc-dname"
-                  className="block text-sm font-semibold text-foreground mb-1.5"
-                >
-                  Display Name
-                </label>
-                <Input
-                  id="acc-dname"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
-                  className="bg-white/5 border-border/50"
-                  data-ocid="account.input"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="acc-email"
-                  className="block text-sm font-semibold text-foreground mb-1.5"
-                >
-                  Email
-                </label>
-                <Input
-                  id="acc-email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  placeholder="your@email.com"
-                  className="bg-white/5 border-border/50"
-                  data-ocid="account.input"
-                />
-              </div>
-              <Button
-                onClick={handleSaveProfile}
-                className="btn-primary"
-                data-ocid="account.save_button"
-              >
-                Save Changes
-              </Button>
+              {profileLoading ? (
+                <div className="space-y-3" data-ocid="account.loading_state">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label
+                      htmlFor="acc-dname"
+                      className="block text-sm font-semibold text-foreground mb-1.5"
+                    >
+                      Display Name
+                    </label>
+                    <Input
+                      id="acc-dname"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Your name"
+                      className="bg-white/5 border-border/50"
+                      data-ocid="account.input"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="acc-email"
+                      className="block text-sm font-semibold text-foreground mb-1.5"
+                    >
+                      Email
+                    </label>
+                    <Input
+                      id="acc-email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      type="email"
+                      placeholder="your@email.com"
+                      className="bg-white/5 border-border/50"
+                      data-ocid="account.input"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={saveProfile.isPending}
+                    className="btn-primary"
+                    data-ocid="account.save_button"
+                  >
+                    {saveProfile.isPending ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="orders">
-            <div
-              className="text-center py-16 glass-card rounded-2xl"
-              data-ocid="account.empty_state"
-            >
-              <Package
-                size={48}
-                className="text-muted-foreground/30 mx-auto mb-4"
-              />
-              <p className="text-muted-foreground">No orders yet</p>
-              <Link to="/products">
-                <Button
-                  className="mt-4 btn-primary"
-                  data-ocid="account.primary_button"
-                >
-                  Start Shopping
-                </Button>
-              </Link>
-            </div>
+            {ordersLoading ? (
+              <div className="space-y-3" data-ocid="account.loading_state">
+                {[1, 2, 3].map((n) => (
+                  <Skeleton key={n} className="h-20 w-full rounded-2xl" />
+                ))}
+              </div>
+            ) : orders.length === 0 ? (
+              <div
+                className="text-center py-16 glass-card rounded-2xl"
+                data-ocid="account.empty_state"
+              >
+                <Package
+                  size={48}
+                  className="text-muted-foreground/30 mx-auto mb-4"
+                />
+                <p className="text-muted-foreground">No orders yet</p>
+                <Link to="/products">
+                  <Button
+                    className="mt-4 btn-primary"
+                    data-ocid="account.primary_button"
+                  >
+                    Start Shopping
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {orders.map((order, i) => (
+                  <div
+                    key={order.id}
+                    className="glass-card rounded-2xl p-4 flex items-center justify-between gap-4"
+                    data-ocid={`account.item.${i + 1}`}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="font-mono text-xs text-muted-foreground">
+                        #{order.id.slice(0, 8)}
+                      </span>
+                      <span className="text-sm text-foreground font-semibold">
+                        {order.items.length} item
+                        {order.items.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <StatusBadge status={order.status} />
+                    <span className="font-bold text-luxe-cyan">
+                      ${order.total.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="wishlist">

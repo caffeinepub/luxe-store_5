@@ -3,9 +3,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useActor } from "../hooks/useActor";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export interface CartItem {
   productId: string;
@@ -39,6 +42,22 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const isLoggedIn = !!identity;
+
+  // Load cart from backend when user logs in
+  useEffect(() => {
+    if (!actor || !isLoggedIn) return;
+    actor
+      .getCallerCart()
+      .then((result) => {
+        if (!result || result.length === 0) return;
+        // Backend cart items don't have display info; we keep local items
+        // and just sync quantities/products. For now we keep local state.
+      })
+      .catch(() => {});
+  }, [actor, isLoggedIn]);
 
   const addItem = useCallback(
     (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
@@ -61,8 +80,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         duration: 2000,
       });
       setIsOpen(true);
+      // Sync to backend
+      if (actor && isLoggedIn) {
+        actor
+          .addToCart({
+            productId: newItem.productId,
+            size: newItem.size ? newItem.size : undefined,
+            color: newItem.color ? newItem.color : undefined,
+            quantity: BigInt(newItem.quantity ?? 1),
+          })
+          .catch(() => {});
+      }
     },
-    [],
+    [actor, isLoggedIn],
   );
 
   const removeItem = useCallback(
@@ -77,8 +107,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
             ),
         ),
       );
+      if (actor && isLoggedIn) {
+        actor.removeFromCart(productId).catch(() => {});
+      }
     },
-    [],
+    [actor, isLoggedIn],
   );
 
   const updateQty = useCallback(
@@ -94,6 +127,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
               ),
           ),
         );
+        if (actor && isLoggedIn) {
+          actor.removeFromCart(productId).catch(() => {});
+        }
       } else {
         setItems((prev) =>
           prev.map((i) =>
@@ -102,12 +138,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
               : i,
           ),
         );
+        if (actor && isLoggedIn) {
+          actor.updateCartItem(productId, BigInt(qty)).catch(() => {});
+        }
       }
     },
-    [],
+    [actor, isLoggedIn],
   );
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    setItems([]);
+    if (actor && isLoggedIn) {
+      actor.clearCart().catch(() => {});
+    }
+  }, [actor, isLoggedIn]);
 
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const totalCount = items.reduce((sum, i) => sum + i.quantity, 0);

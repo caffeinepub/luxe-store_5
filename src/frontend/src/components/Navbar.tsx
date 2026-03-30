@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -13,6 +14,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const { totalCount, setIsOpen: setCartOpen } = useCart();
+  const { identity } = useInternetIdentity();
   const { items: wishlistItems } = useWishlist();
 
   useEffect(() => {
@@ -27,6 +29,7 @@ export default function Navbar() {
     { label: "About", to: "/about" },
     { label: "Contact", to: "/contact" },
     { label: "Admin", to: "/admin" },
+    { label: "Account", to: "/account" },
   ];
 
   return (
@@ -91,6 +94,9 @@ export default function Navbar() {
                 }}
               >
                 {link.label}
+                {link.label === "Account" && identity && (
+                  <span className="absolute -top-1 -right-2 w-1.5 h-1.5 rounded-full bg-luxe-cyan" />
+                )}
                 <span
                   className="absolute -bottom-1 left-0 w-0 h-[1px] group-hover:w-full transition-all duration-300"
                   style={{

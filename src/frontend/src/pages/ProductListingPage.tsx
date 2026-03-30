@@ -13,7 +13,6 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { useAllProducts } from "../hooks/useQueries";
-import { mockProducts } from "../lib/mockData";
 
 const CATEGORIES = ["Electronics", "Fashion", "Home", "Sports", "Beauty"];
 const RATING_OPTIONS = [0, 3, 4, 4.5];
@@ -37,7 +36,7 @@ function ProductSkeleton() {
 
 export default function ProductListingPage() {
   const { data: backendProducts, isLoading } = useAllProducts();
-  const products = backendProducts?.length ? backendProducts : mockProducts;
+  const products = backendProducts ?? [];
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, 2500]);
   const [minRating, setMinRating] = useState(0);

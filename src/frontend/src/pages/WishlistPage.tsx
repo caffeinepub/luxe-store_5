@@ -3,15 +3,16 @@ import { Heart, ShoppingCart, Star } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
+import { useAllProducts } from "../hooks/useQueries";
 import { getProductImage } from "../lib/imageUtils";
-import { mockProducts } from "../lib/mockData";
 
 const STARS = [0, 1, 2, 3, 4];
 
 export default function WishlistPage() {
   const { items: wishlistIds, toggle } = useWishlist();
   const { addItem } = useCart();
-  const wishlisted = mockProducts.filter((p) => wishlistIds.includes(p.id));
+  const { data: allProducts = [] } = useAllProducts();
+  const wishlisted = allProducts.filter((p) => wishlistIds.includes(p.id));
 
   return (
     <div className="min-h-screen pt-28 px-4 pb-16" data-ocid="wishlist.page">
