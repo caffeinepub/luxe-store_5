@@ -26,20 +26,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { Loader2, Pencil, Plus, ShieldAlert, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Product } from "../backend.d";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import {
-  useAllProducts,
-  useClaimAdmin,
-  useCreateOrUpdateProduct,
-  useIsAdmin,
-} from "../hooks/useQueries";
+import { useAllProducts, useCreateOrUpdateProduct } from "../hooks/useQueries";
 
 const CATEGORIES = ["Electronics", "Fashion", "Home", "Sports", "Beauty"];
 
@@ -355,17 +347,11 @@ function ProductFormModal({
 }
 
 export default function AdminPage() {
-  const { identity, isInitializing, login, isLoggingIn } =
-    useInternetIdentity();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: products, isLoading: productsLoading } = useAllProducts();
   const mutation = useCreateOrUpdateProduct();
-  const claimAdmin = useClaimAdmin();
-  const queryClient = useQueryClient();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | undefined>();
-  const [adminToken, setAdminToken] = useState("");
 
   const openAdd = () => {
     setEditProduct(undefined);
@@ -385,126 +371,6 @@ export default function AdminPage() {
       toast.error("Failed to remove product");
     }
   };
-
-  const handleClaimAdmin = async () => {
-    try {
-      await claimAdmin.mutateAsync(adminToken);
-      queryClient.setQueryData(["isAdmin"], true);
-      queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
-      toast.success("Admin access granted!");
-      setAdminToken("");
-    } catch {
-      toast.error("Invalid token or admin already assigned.");
-    }
-  };
-
-  if (isInitializing || adminLoading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        data-ocid="admin.loading_state"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-luxe-cyan" />
-      </div>
-    );
-  }
-
-  if (!identity) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-3xl p-10 max-w-md w-full text-center space-y-6"
-          data-ocid="admin.login_state"
-        >
-          <ShieldAlert className="mx-auto h-12 w-12 text-luxe-cyan" />
-          <h2 className="font-display text-2xl font-bold">Login Required</h2>
-          <p className="text-muted-foreground">
-            Please log in to access the admin panel.
-          </p>
-          <Button
-            onClick={() => login()}
-            disabled={isLoggingIn}
-            className="bg-luxe-cyan text-black hover:bg-luxe-cyan/90 w-full font-semibold"
-            data-ocid="admin.login_button"
-          >
-            {isLoggingIn ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging in...
-              </>
-            ) : (
-              "Login with Internet Identity"
-            )}
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-3xl p-10 max-w-md w-full space-y-6"
-          data-ocid="admin.setup.panel"
-        >
-          <div className="text-center space-y-3">
-            <ShieldAlert className="mx-auto h-12 w-12 text-luxe-cyan" />
-            <h2 className="font-display text-2xl font-bold">Admin Setup</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Enter your admin secret token to claim admin access. This is set
-              once – the first person to use the correct token becomes the store
-              admin.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <Label className="text-muted-foreground text-xs uppercase tracking-wider">
-              Secret Token
-            </Label>
-            <Input
-              type="password"
-              value={adminToken}
-              onChange={(e) => setAdminToken(e.target.value)}
-              placeholder="Enter admin secret token"
-              className="bg-white/5 border-white/10"
-              onKeyDown={(e) => e.key === "Enter" && handleClaimAdmin()}
-              data-ocid="admin.setup.input"
-            />
-          </div>
-
-          <Button
-            onClick={handleClaimAdmin}
-            disabled={claimAdmin.isPending || !adminToken.trim()}
-            className="bg-luxe-cyan text-black hover:bg-luxe-cyan/90 font-semibold w-full"
-            data-ocid="admin.setup.primary_button"
-          >
-            {claimAdmin.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Claiming...
-              </>
-            ) : (
-              "Claim Admin Access"
-            )}
-          </Button>
-
-          <Link to="/" className="block">
-            <Button
-              variant="outline"
-              className="border-white/20 w-full"
-              data-ocid="admin.setup.cancel_button"
-            >
-              Go Home
-            </Button>
-          </Link>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen pt-28 pb-20 px-4">
