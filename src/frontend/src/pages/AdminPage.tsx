@@ -26,12 +26,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
-import { motion } from "motion/react";
-import { useState } from "react";
+import {
+  ImagePlus,
+  Loader2,
+  Lock,
+  Pencil,
+  Plus,
+  Shield,
+  Trash2,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Product } from "../backend.d";
 import { useAllProducts, useCreateOrUpdateProduct } from "../hooks/useQueries";
+
+const ADMIN_PASSWORD = "Devang@947638";
+const SESSION_KEY = "luxe_admin_auth";
 
 const CATEGORIES = ["Electronics", "Fashion", "Home", "Sports", "Beauty"];
 
@@ -107,6 +119,278 @@ const formToProduct = (form: FormState): Product => ({
   isTrending: form.isTrending,
   images: form.images,
 });
+
+// ─── Password Gate ────────────────────────────────────────────────────────────
+
+function AdminPasswordGate({ onAuth }: { onAuth: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setChecking(true);
+    setTimeout(() => {
+      if (password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(SESSION_KEY, "true");
+        onAuth();
+      } else {
+        setError("Incorrect password. Access denied.");
+        setPassword("");
+      }
+      setChecking(false);
+    }, 400);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 rounded-full bg-luxe-cyan/10 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/3 w-80 h-80 rounded-full bg-luxe-magenta/10 blur-3xl" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="glass-card rounded-3xl p-10 w-full max-w-md relative z-10"
+        style={{ border: "1px solid rgba(47, 212, 255, 0.25)" }}
+      >
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(47,212,255,0.2), rgba(255,0,255,0.2))",
+              border: "1px solid rgba(47,212,255,0.4)",
+              boxShadow: "0 0 24px rgba(47,212,255,0.3)",
+            }}
+          >
+            <Shield className="w-8 h-8 text-luxe-cyan" />
+          </div>
+        </div>
+
+        <h1 className="font-display text-3xl font-black text-center mb-1">
+          Admin <span className="gradient-text">Access</span>
+        </h1>
+        <p className="text-muted-foreground text-sm text-center mb-8">
+          Enter your admin password to continue
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-muted-foreground text-xs uppercase tracking-widest">
+              Password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
+                placeholder="Enter admin password"
+                className="pl-10 bg-white/5 border-white/10 focus:border-luxe-cyan/60 focus:ring-0 transition-colors"
+                autoFocus
+                data-ocid="admin.gate.input"
+              />
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="text-red-400 text-sm flex items-center gap-2"
+                data-ocid="admin.gate.error_state"
+              >
+                <X className="w-4 h-4 flex-shrink-0" />
+                {error}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          <Button
+            type="submit"
+            disabled={checking || !password}
+            className="w-full font-semibold h-11"
+            style={{
+              background: "linear-gradient(135deg, #2FD4FF, #FF00FF)",
+              color: "#000",
+            }}
+            data-ocid="admin.gate.submit_button"
+          >
+            {checking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
+              </>
+            ) : (
+              "Enter Admin Panel"
+            )}
+          </Button>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Image Upload Section ─────────────────────────────────────────────────────
+
+function ImageUploadSection({
+  images,
+  onChange,
+}: {
+  images: string[];
+  onChange: (images: string[]) => void;
+}) {
+  const [urlInput, setUrlInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const addImageUrl = () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    onChange([...images, trimmed]);
+    setUrlInput("");
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setUploading(true);
+    const results: string[] = [];
+    for (const file of files) {
+      const dataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      results.push(dataUrl);
+    }
+    onChange([...images, ...results]);
+    setUploading(false);
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeImage = (idx: number) => {
+    onChange(images.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="col-span-2 space-y-3">
+      <Label className="text-muted-foreground text-xs uppercase tracking-wider">
+        Product Images
+      </Label>
+
+      {/* Upload Area */}
+      <label
+        className="rounded-xl border-2 border-dashed border-luxe-cyan/40 hover:border-luxe-cyan/70 transition-colors cursor-pointer relative overflow-hidden block"
+        style={{ background: "rgba(47,212,255,0.04)" }}
+        data-ocid="admin.product.dropzone"
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleFileChange}
+          data-ocid="admin.product.upload_button"
+        />
+        <div className="flex flex-col items-center justify-center py-6 gap-2">
+          {uploading ? (
+            <>
+              <Loader2 className="w-8 h-8 text-luxe-cyan animate-spin" />
+              <p className="text-sm text-luxe-cyan">Uploading images...</p>
+            </>
+          ) : (
+            <>
+              <ImagePlus className="w-8 h-8 text-luxe-cyan/60" />
+              <p className="text-sm font-medium text-luxe-cyan/80">
+                Click to upload images
+              </p>
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG, WEBP supported
+              </p>
+            </>
+          )}
+        </div>
+      </label>
+
+      {/* URL Input */}
+      <div className="flex gap-2">
+        <Input
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addImageUrl();
+            }
+          }}
+          placeholder="Or paste image URL..."
+          className="bg-white/5 border-white/10 flex-1"
+          data-ocid="admin.product.input"
+        />
+        <Button
+          type="button"
+          onClick={addImageUrl}
+          disabled={!urlInput.trim()}
+          variant="outline"
+          className="border-luxe-cyan/40 text-luxe-cyan hover:bg-luxe-cyan/10"
+          data-ocid="admin.product.secondary_button"
+        >
+          Add URL
+        </Button>
+      </div>
+
+      {/* Image Previews */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {images.map((img, idx) => (
+            <div
+              key={`${img.slice(0, 40)}-${idx}`}
+              className="relative group rounded-lg overflow-hidden aspect-square"
+            >
+              <img
+                src={img}
+                alt={`Preview ${idx + 1}`}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeImage(idx);
+                  }}
+                  className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors"
+                  data-ocid={`admin.product.delete_button.${idx + 1}`}
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </div>
+              {idx === 0 && (
+                <span className="absolute top-1 left-1 text-[10px] bg-luxe-cyan text-black font-bold px-1.5 py-0.5 rounded">
+                  MAIN
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Product Form Modal ───────────────────────────────────────────────────────
 
 function ProductFormModal({
   open,
@@ -293,6 +577,12 @@ function ProductFormModal({
             />
           </div>
 
+          {/* Image Upload */}
+          <ImageUploadSection
+            images={form.images}
+            onChange={(imgs) => set("images", imgs)}
+          />
+
           <div className="flex items-center gap-6 col-span-2 pt-2">
             <div className="flex items-center gap-2 cursor-pointer">
               <Checkbox
@@ -346,7 +636,9 @@ function ProductFormModal({
   );
 }
 
-export default function AdminPage() {
+// ─── Admin Dashboard ──────────────────────────────────────────────────────────
+
+function AdminDashboard() {
   const { data: products, isLoading: productsLoading } = useAllProducts();
   const mutation = useCreateOrUpdateProduct();
 
@@ -474,6 +766,9 @@ export default function AdminPage() {
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
                   <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">
+                    Image
+                  </TableHead>
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">
                     Title
                   </TableHead>
                   <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">
@@ -500,6 +795,21 @@ export default function AdminPage() {
                     className="border-white/10 hover:bg-white/5 transition-colors"
                     data-ocid={`admin.products.row.${idx + 1}`}
                   >
+                    <TableCell>
+                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-white/5">
+                        {product.images && product.images.length > 0 ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                            No img
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-medium max-w-[200px] truncate">
                       {product.title}
                     </TableCell>
@@ -584,4 +894,18 @@ export default function AdminPage() {
       />
     </div>
   );
+}
+
+// ─── Page Entry ───────────────────────────────────────────────────────────────
+
+export default function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(
+    () => sessionStorage.getItem(SESSION_KEY) === "true",
+  );
+
+  if (!authenticated) {
+    return <AdminPasswordGate onAuth={() => setAuthenticated(true)} />;
+  }
+
+  return <AdminDashboard />;
 }

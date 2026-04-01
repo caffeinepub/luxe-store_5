@@ -93,6 +93,13 @@ export const PRODUCT_COLOR_IMAGES: Record<string, Record<string, string>> = {
 export function getProductColorGallery(
   product: Product,
 ): Array<{ color: string; image: string }> {
+  // If product has its own uploaded images, map them to colors
+  if (product.images && product.images.length > 0) {
+    return product.colors.map((color, idx) => ({
+      color,
+      image: product.images[idx] ?? product.images[0],
+    }));
+  }
   const colorMap = PRODUCT_COLOR_IMAGES[product.id] ?? {};
   return product.colors.map((color) => ({
     color,
@@ -112,6 +119,13 @@ export function getProductImageForColor(
   color?: string,
 ): string {
   if (color) {
+    // If product has its own images, try to find one for this color index
+    if (product.images && product.images.length > 0) {
+      const colorIdx = product.colors.indexOf(color);
+      if (colorIdx >= 0 && product.images[colorIdx])
+        return product.images[colorIdx];
+      return product.images[0];
+    }
     const colorMap = PRODUCT_COLOR_IMAGES[product.id] ?? {};
     if (colorMap[color]) return colorMap[color];
   }
@@ -119,6 +133,7 @@ export function getProductImageForColor(
 }
 
 export function getProductImage(product: Product): string {
+  if (product.images && product.images.length > 0) return product.images[0];
   return (
     PRODUCT_IMAGES[product.id] ??
     CATEGORY_IMAGES[product.category] ??
