@@ -16,7 +16,11 @@ export const mockProducts: Product[] = [
     reviewCount: 342n,
     isFlashSale: true,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-airmax-black.dim_600x600.jpg",
+      "/assets/generated/product-airmax-white.dim_600x600.jpg",
+      "/assets/generated/product-airmax-cyan.dim_600x600.jpg",
+    ],
   },
   {
     id: "2",
@@ -33,7 +37,11 @@ export const mockProducts: Product[] = [
     reviewCount: 289n,
     isFlashSale: true,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-headphones-black.dim_600x600.jpg",
+      "/assets/generated/product-headphones-silver.dim_600x600.jpg",
+      "/assets/generated/product-headphones-brown.dim_600x600.jpg",
+    ],
   },
   {
     id: "3",
@@ -50,7 +58,11 @@ export const mockProducts: Product[] = [
     reviewCount: 156n,
     isFlashSale: false,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-jacket-black.dim_600x600.jpg",
+      "/assets/generated/product-jacket-navy.dim_600x600.jpg",
+      "/assets/generated/product-jacket-brown.dim_600x600.jpg",
+    ],
   },
   {
     id: "4",
@@ -67,7 +79,11 @@ export const mockProducts: Product[] = [
     reviewCount: 521n,
     isFlashSale: false,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-watch-black.dim_600x600.jpg",
+      "/assets/generated/product-watch-silver.dim_600x600.jpg",
+      "/assets/generated/product-watch-gold.dim_600x600.jpg",
+    ],
   },
   {
     id: "5",
@@ -84,7 +100,11 @@ export const mockProducts: Product[] = [
     reviewCount: 89n,
     isFlashSale: false,
     isTrending: false,
-    images: [],
+    images: [
+      "/assets/generated/product-sofa-tan.dim_600x600.jpg",
+      "/assets/generated/product-sofa-teal.dim_600x600.jpg",
+      "/assets/generated/product-sofa-black.dim_600x600.jpg",
+    ],
   },
   {
     id: "6",
@@ -101,7 +121,11 @@ export const mockProducts: Product[] = [
     reviewCount: 423n,
     isFlashSale: true,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-beauty-gold.dim_600x600.jpg",
+      "/assets/generated/product-beauty-pink.dim_600x600.jpg",
+      "/assets/generated/product-beauty-white.dim_600x600.jpg",
+    ],
   },
   {
     id: "7",
@@ -118,7 +142,11 @@ export const mockProducts: Product[] = [
     reviewCount: 267n,
     isFlashSale: true,
     isTrending: false,
-    images: [],
+    images: [
+      "/assets/generated/product-running-orange.dim_600x600.jpg",
+      "/assets/generated/product-running-black.dim_600x600.jpg",
+      "/assets/generated/product-running-teal.dim_600x600.jpg",
+    ],
   },
   {
     id: "8",
@@ -135,7 +163,11 @@ export const mockProducts: Product[] = [
     reviewCount: 112n,
     isFlashSale: false,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-lamp-gold.dim_600x600.jpg",
+      "/assets/generated/product-lamp-black.dim_600x600.jpg",
+      "/assets/generated/product-lamp-white.dim_600x600.jpg",
+    ],
   },
   {
     id: "9",
@@ -152,7 +184,11 @@ export const mockProducts: Product[] = [
     reviewCount: 198n,
     isFlashSale: false,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-sneaker-white.dim_600x600.jpg",
+      "/assets/generated/product-sneaker-black.dim_600x600.jpg",
+      "/assets/generated/product-sneaker-brown.dim_600x600.jpg",
+    ],
   },
   {
     id: "10",
@@ -169,7 +205,7 @@ export const mockProducts: Product[] = [
     reviewCount: 387n,
     isFlashSale: true,
     isTrending: false,
-    images: [],
+    images: ["/assets/generated/product-monitor-black.dim_600x600.jpg"],
   },
   {
     id: "11",
@@ -186,7 +222,11 @@ export const mockProducts: Product[] = [
     reviewCount: 315n,
     isFlashSale: false,
     isTrending: true,
-    images: [],
+    images: [
+      "/assets/generated/product-yoga-black.dim_600x600.jpg",
+      "/assets/generated/product-yoga-red.dim_600x600.jpg",
+      "/assets/generated/product-yoga-teal.dim_600x600.jpg",
+    ],
   },
   {
     id: "12",
@@ -203,7 +243,11 @@ export const mockProducts: Product[] = [
     reviewCount: 634n,
     isFlashSale: false,
     isTrending: false,
-    images: [],
+    images: [
+      "/assets/generated/product-foundation-light.dim_600x600.jpg",
+      "/assets/generated/product-foundation-medium.dim_600x600.jpg",
+      "/assets/generated/product-foundation-deep.dim_600x600.jpg",
+    ],
   },
 ];
 
@@ -212,7 +256,7 @@ export const testimonials = [
     id: 1,
     name: "Sarah Mitchell",
     role: "Fashion Designer",
-    avatar: "SM",
+    avatar: "/assets/generated/testimonial-avatar-1.dim_200x200.jpg",
     rating: 5,
     quote:
       "LUXE has completely transformed my shopping experience. The quality of every product I've ordered has exceeded my expectations. Fast delivery, premium packaging.",
@@ -221,7 +265,7 @@ export const testimonials = [
     id: 2,
     name: "James Rodriguez",
     role: "Fitness Coach",
-    avatar: "JR",
+    avatar: "/assets/generated/testimonial-avatar-2.dim_200x200.jpg",
     rating: 5,
     quote:
       "The AirMax Pro Elite sneakers are absolutely incredible. I wear them for every training session and they still look and feel brand new after 6 months of intense use.",
@@ -230,7 +274,7 @@ export const testimonials = [
     id: 3,
     name: "Priya Sharma",
     role: "Tech Entrepreneur",
-    avatar: "PS",
+    avatar: "/assets/generated/testimonial-avatar-3.dim_200x200.jpg",
     rating: 5,
     quote:
       "Finally, a store that understands premium quality. The Smart Watch Ultra has become my most used device. Customer service is outstanding as well.",

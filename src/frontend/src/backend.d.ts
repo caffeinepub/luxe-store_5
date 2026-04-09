@@ -87,6 +87,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     removeFromCart(productId: string): Promise<void>;
     removeFromWishlist(productId: string): Promise<void>;
+    reseedProducts(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateCartItem(productId: string, quantity: bigint): Promise<void>;
     updateOrderStatus(orderId: string, status: Variant_shipped_pending_delivered_processing): Promise<void>;

@@ -82,6 +82,7 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'removeFromCart' : ActorMethod<[string], undefined>,
   'removeFromWishlist' : ActorMethod<[string], undefined>,
+  'reseedProducts' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateCartItem' : ActorMethod<[string, bigint], undefined>,
   'updateOrderStatus' : ActorMethod<

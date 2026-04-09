@@ -108,6 +108,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'removeFromCart' : IDL.Func([IDL.Text], [], []),
   'removeFromWishlist' : IDL.Func([IDL.Text], [], []),
+  'reseedProducts' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateCartItem' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'updateOrderStatus' : IDL.Func(
@@ -233,6 +234,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'removeFromCart' : IDL.Func([IDL.Text], [], []),
     'removeFromWishlist' : IDL.Func([IDL.Text], [], []),
+    'reseedProducts' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateCartItem' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'updateOrderStatus' : IDL.Func(

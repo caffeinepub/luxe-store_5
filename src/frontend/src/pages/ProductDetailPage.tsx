@@ -15,18 +15,20 @@ import { useEffect, useRef, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
-import { useProduct, useProductReviews } from "../hooks/useQueries";
+import {
+  useAllProducts,
+  useProduct,
+  useProductReviews,
+} from "../hooks/useQueries";
 import {
   getProductColorGallery,
   getProductImageForColor,
 } from "../lib/imageUtils";
-import { mockProducts } from "../lib/mockData";
 
 export default function ProductDetailPage() {
   const { id } = useParams({ from: "/products/$id" });
   const { data: backendProduct, isLoading } = useProduct(id);
-  const product =
-    backendProduct ?? mockProducts.find((p) => p.id === id) ?? mockProducts[0];
+  const product = backendProduct ?? null;
   const { data: reviews = [] } = useProductReviews(id);
   const { addItem } = useCart();
   const { toggle, has } = useWishlist();
@@ -44,7 +46,8 @@ export default function ProductDetailPage() {
   const mainImage = product
     ? getProductImageForColor(product, selectedColor)
     : "";
-  const relatedProducts = mockProducts
+  const { data: allProducts = [] } = useAllProducts();
+  const relatedProducts = allProducts
     .filter((p) => p.category === product?.category && p.id !== product?.id)
     .slice(0, 4);
   const isWishlisted = product ? has(product.id) : false;

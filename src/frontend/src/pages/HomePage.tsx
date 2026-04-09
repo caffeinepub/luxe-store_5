@@ -1413,8 +1413,13 @@ function TestimonialsSection() {
                 &ldquo;{t.quote}&rdquo;
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-luxe-cyan/20 flex items-center justify-center text-luxe-cyan font-bold text-sm">
-                  {t.avatar}
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-luxe-cyan/30 flex-shrink-0">
+                  <img
+                    src={t.avatar}
+                    alt={t.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-foreground">

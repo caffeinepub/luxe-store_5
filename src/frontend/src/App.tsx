@@ -7,12 +7,14 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import CartDrawer from "./components/CartDrawer";
 import Footer from "./components/Footer";
+import { ImagePreloader } from "./components/ImagePreloader";
 import Navbar from "./components/Navbar";
 import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
+import { useActor } from "./hooks/useActor";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const ProductListingPage = lazy(() => import("./pages/ProductListingPage"));
@@ -25,6 +27,26 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 
+// Calls reseedProducts once when actor is available to fix any stale backend data
+function ProductSeeder() {
+  const { actor, isFetching } = useActor();
+  const seededRef = useRef(false);
+
+  useEffect(() => {
+    if (actor && !isFetching && !seededRef.current) {
+      seededRef.current = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (actor as unknown as Record<string, () => Promise<void>>)
+        .reseedProducts?.()
+        .catch(() => {
+          // silently ignore errors - not critical
+        });
+    }
+  }, [actor, isFetching]);
+
+  return null;
+}
+
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -35,6 +57,8 @@ function RootLayout() {
       </main>
       <Footer />
       <Toaster position="top-right" richColors />
+      <ImagePreloader />
+      <ProductSeeder />
     </div>
   );
 }

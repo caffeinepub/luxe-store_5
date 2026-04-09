@@ -1,6 +1,7 @@
 import type { Principal } from "@icp-sdk/core/principal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CartItem, Product, Review, UserProfile } from "../backend.d";
+import { enrichProductsWithImages } from "../lib/imageUtils";
 import { useActor } from "./useActor";
 import { useInternetIdentity } from "./useInternetIdentity";
 
@@ -10,7 +11,9 @@ export function useAllProducts() {
     queryKey: ["products"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllProducts();
+      const prods = await actor.getAllProducts();
+      // Enrich with frontend images in case backend has old data with empty images
+      return enrichProductsWithImages(prods);
     },
     enabled: !!actor && !isFetching,
     staleTime: 60_000,
@@ -23,7 +26,10 @@ export function useProduct(id: string) {
     queryKey: ["product", id],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getProduct(id);
+      const prod = await actor.getProduct(id);
+      if (!prod) return null;
+      // Enrich with frontend images in case backend has old data with empty images
+      return enrichProductsWithImages([prod])[0];
     },
     enabled: !!actor && !isFetching && !!id,
     staleTime: 60_000,
